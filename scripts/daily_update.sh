@@ -26,7 +26,7 @@ print(f'  Detected: {r.detected}, Mode: {r.connection_mode}, Method: {r.detectio
 
 # 2. Run firmware parser test
 echo "[$DATE] Running firmware parser test..." >> "$LOG_FILE"
-python3 -c "
+PYTHONPATH="$PROJECT_DIR" python3 -c "
 import sys, os
 sys.path.insert(0, '$PROJECT_DIR')
 os.chdir('$PROJECT_DIR')
