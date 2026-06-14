@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Device History — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Database</span>
+    <h1>Device Session History</h1>
+    <p>Track all connected Samsung devices. Stored locally in the SFT database.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <!-- Stats -->
+    <div class="grid-4" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-body" style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--navy)" id="statTotal">—</div>
+        <div class="text-xs text-dim">Total Devices</div>
+      </div></div>
+      <div class="card"><div class="card-body" style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--green)" id="statToday">—</div>
+        <div class="text-xs text-dim">Today</div>
+      </div></div>
+      <div class="card"><div class="card-body" style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--blue)" id="statActive">—</div>
+        <div class="text-xs text-dim">Active (1h)</div>
+      </div></div>
+      <div class="card"><div class="card-body" style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--amber)" id="statOps">—</div>
+        <div class="text-xs text-dim">Operations</div>
+      </div></div>
+    </div>
+
+    <!-- Current Device -->
+    <div class="card" style="border-left:4px solid var(--green);margin-bottom:1.5rem">
+      <div class="card-header"><h3>CURRENTLY CONNECTED</h3></div>
+      <div class="card-body">
+        <div class="grid-2" id="currentDeviceCard">
+          <div>
+            <table class="data-table"><tbody>
+              <tr><td style="width:120px;color:var(--gray-500)">Model</td><td id="curModel">—</td></tr>
+              <tr><td>Serial</td><td id="curSerial">—</td></tr>
+              <tr><td>Mode</td><td id="curMode">—</td></tr>
+              <tr><td>Firmware</td><td id="curFirmware">—</td></tr>
+            </tbody></table>
+          </div>
+          <div>
+            <table class="data-table"><tbody>
+              <tr><td style="width:120px;color:var(--gray-500)">Chipset</td><td id="curChipset">—</td></tr>
+              <tr><td>CSC</td><td id="curCsc">—</td></tr>
+              <tr><td>Android</td><td id="curAndroid">—</td></tr>
+              <tr><td>Battery</td><td id="curBattery">—</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+        <h3>CONNECTION HISTORY</h3>
+        <button class="scan-btn" onclick="loadHistory()">⟳ REFRESH</button>
+      </div>
+      <div class="card-body" style="padding:0;overflow-x:auto">
+        <table class="data-table" id="historyTable">
+          <thead><tr>
+            <th>Model</th><th>Serial</th><th>Mode</th><th>Firmware</th><th>CSC</th><th>Last Seen</th><th>Count</th>
+          </tr></thead>
+          <tbody id="historyBody">
+            <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--gray-400)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Operation Log -->
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-header"><h3>OPERATION LOG</h3></div>
+      <div class="card-body" style="padding:0;overflow-x:auto">
+        <table class="data-table" id="opLogTable">
+          <thead><tr>
+            <th>Time</th><th>Operation</th><th>Category</th><th>Status</th><th>Duration</th><th>Details</th>
+          </tr></thead>
+          <tbody id="opLogBody">
+            <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--gray-400)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+function loadStats() {
+  fetch('/api/v1/devices/stats')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var s = d.data || {};
+      document.getElementById('statTotal').textContent = s.total_devices || 0;
+      document.getElementById('statToday').textContent = s.today_connections || 0;
+      document.getElementById('statActive').textContent = s.active_last_hour || 0;
+    })
+    .catch(function() {});
+}
+
+function loadCurrentDevice() {
+  fetch('/api/v1/devices/detect')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var data = d.data || {};
+      if (data.detected) {
+        document.getElementById('curModel').textContent = (data.model || '—') + (data.model_name ? ' (' + data.model_name + ')' : '');
+        document.getElementById('curSerial').textContent = data.serial || '—';
+        document.getElementById('curMode').textContent = data.connection_mode || '—';
+        document.getElementById('curFirmware').textContent = data.firmware || '—';
+        document.getElementById('curChipset').textContent = data.chipset || '—';
+        document.getElementById('curCsc').textContent = data.csc || '—';
+        document.getElementById('curAndroid').textContent = data.android_version || '—';
+        document.getElementById('curBattery').textContent = data.battery_level || '—';
+      }
+    })
+    .catch(function() {});
+}
+
+function loadHistory() {
+  fetch('/api/v1/devices/history?limit=50')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var rows = d.data || [];
+      var tbody = document.getElementById('historyBody');
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--gray-400)">No device history yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = '';
+      rows.forEach(function(r) {
+        var time = r.last_seen ? r.last_seen.replace('T', ' ').substring(0, 19) : '—';
+        tbody.innerHTML += '<tr>' +
+          '<td class="text-mono" style="font-size:.72rem">' + (r.model || '—') + '</td>' +
+          '<td class="text-mono" style="font-size:.68rem;color:var(--gray-500)">' + (r.serial || '—').substring(0, 16) + '...</td>' +
+          '<td><span class="status-chip" style="font-size:.55rem;padding:.1rem .35rem;background:var(--blue-light);color:var(--blue);border:1px solid rgba(20,40,160,.1)">' + (r.connection_mode || '—') + '</span></td>' +
+          '<td class="text-mono" style="font-size:.68rem">' + (r.firmware_version || '—') + '</td>' +
+          '<td>' + (r.csc || '—') + '</td>' +
+          '<td class="text-xs text-dim">' + time + '</td>' +
+          '<td style="text-align:center">' + (r.connection_count || 1) + '</td>' +
+        '</tr>';
+      });
+    })
+    .catch(function() {
+      document.getElementById('historyBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--red)">Failed to load history</td></tr>';
+    });
+}
+
+function loadOpLog() {
+  fetch('/api/v1/admin/stats')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var ops = d.data && d.data.recent_operations ? d.data.recent_operations : [];
+      var tbody = document.getElementById('opLogBody');
+      document.getElementById('statOps').textContent = ops.length;
+      if (ops.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--gray-400)">No operations logged yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = '';
+      ops.forEach(function(op) {
+        var statusColor = op.status === 'completed' ? 'green' : (op.status === 'failed' ? 'red' : 'amber');
+        var time = op.created_at ? op.created_at.replace('T', ' ').substring(0, 19) : '—';
+        tbody.innerHTML += '<tr>' +
+          '<td class="text-xs text-dim">' + time + '</td>' +
+          '<td class="text-mono" style="font-size:.72rem">' + (op.operation || '—') + '</td>' +
+          '<td>' + (op.category || '—') + '</td>' +
+          '<td><span class="status-chip" style="font-size:.55rem;padding:.1rem .35rem;background:var(--' + statusColor + '-bg);color:var(' + statusColor + ');border:1px solid var(' + statusColor + '-border)">' + (op.status || '—') + '</span></td>' +
+          '<td class="text-xs">' + (op.duration_ms ? op.duration_ms + 'ms' : '—') + '</td>' +
+          '<td class="text-xs text-dim" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + JSON.stringify(op.details || {}).substring(0, 60) + '</td>' +
+        '</tr>';
+      });
+    })
+    .catch(function() {});
+}
+
+// Load all on page load
+loadStats();
+loadCurrentDevice();
+loadHistory();
+loadOpLog();
+
+// Auto-refresh every 10 seconds
+setInterval(function() { loadStats(); loadCurrentDevice(); }, 10000);
+</script>
+
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}API Documentation — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Developer</span>
+    <h1>API Documentation</h1>
+    <p>REST API v1 reference. All endpoints return JSON. Base URL: <code>http://localhost:5000/api/v1</code></p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Auth -->
+    <div class="card" style="border-left:4px solid var(--blue);margin-bottom:1.5rem">
+      <div class="card-body">
+        <h4 style="font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">Authentication</h4>
+        <p class="text-sm" style="color:var(--gray-600);margin-bottom:.75rem">Read-only endpoints are public. Write endpoints require an API key in the <code>Authorization</code> header:</p>
+        <div style="background:var(--navy);color:var(--gray-300);font-family:var(--font-mono);font-size:.72rem;padding:.75rem;border-radius:4px">
+          Authorization: Bearer sft_xxxxxxxxxxxxxxxx
+        </div>
+        <p class="text-xs text-dim mt-1">Create an API key via <code>POST /api/v1/admin/keys</code> (requires admin key).</p>
+      </div>
+    </div>
+
+    <!-- Endpoints -->
+    <div id="apiEndpoints"></div>
+
+  </div>
+</section>
+
+<script>
+var endpoints = [
+  {
+    category: 'System',
+    items: [
+      { method: 'GET', path: '/api/v1/health', desc: 'Public health check', auth: false,
+        response: '{"status":"ok","version":"3.0.0","timestamp":...}' },
+    ]
+  },
+  {
+    category: 'Devices',
+    items: [
+      { method: 'GET', path: '/api/v1/devices/detect', desc: 'Full auto-detect (ADB→Fastboot→Heimdall→USB)', auth: false,
+        response: '{"status":"ok","data":{"detected":true,"model":"SM-A042F","serial":"...","connection_mode":"Download Mode (Odin)"}}' },
+      { method: 'GET', path: '/api/v1/devices/status', desc: 'Quick connection check', auth: false,
+        response: '{"connected":true,"model":"SM-A042F","connection_mode":"Download Mode (Odin)"}' },
+      { method: 'GET', path: '/api/v1/devices/history', desc: 'Device connection history', auth: true,
+        params: '?limit=50',
+        response: '{"status":"ok","data":[...],"count":1}' },
+      { method: 'GET', path: '/api/v1/devices/stats', desc: 'Connection statistics', auth: true,
+        response: '{"status":"ok","data":{"total_devices":1,"today_connections":1,"active_last_hour":1}}' },
+    ]
+  },
+  {
+    category: 'Firmware',
+    items: [
+      { method: 'POST', path: '/api/v1/firmware/parse', desc: 'Parse 13-char firmware string', auth: true,
+        body: '{"firmware": "A042FXXSFEZB9"}',
+        response: '{"status":"ok","data":{"model":"A04e","chipset":"MediaTek","android":"18"}}' },
+      { method: 'POST', path: '/api/v1/firmware/check', desc: 'Rollback prevention check', auth: true,
+        body: '{"target": "S928BXXS5BYB1", "current": "S928BXXS4AYA1"}',
+        response: '{"status":"ok","data":{"allowed":true,"target_bl":5,"current_bl":4}}' },
+      { method: 'POST', path: '/api/v1/firmware/validate', desc: 'Validate tar.md5 file integrity', auth: 'write',
+        body: '{"filepath": "/path/to/firmware.tar.md5"}',
+        response: '{"status":"ok","data":{"valid":true,"md5":"...","file_count":4}}' },
+      { method: 'GET', path: '/api/v1/firmware/history', desc: 'Firmware validation history', auth: true,
+        params: '?limit=50',
+        response: '{"status":"ok","data":[...],"count":0}' },
+    ]
+  },
+  {
+    category: 'CSC Database',
+    items: [
+      { method: 'GET', path: '/api/v1/csc/search', desc: 'Search CSC database', auth: false,
+        params: '?q=South+Africa&limit=20',
+        response: '{"status":"ok","data":[{"code":"XFA","country":"South Africa","carrier":"Unlocked"}]}' },
+      { method: 'GET', path: '/api/v1/csc/stats', desc: 'CSC database statistics', auth: false,
+        response: '{"status":"ok","data":{"total_codes":252,"south_africa_codes":25}}' },
+      { method: 'GET', path: '/api/v1/csc/XFA', desc: 'Get CSC code details', auth: false,
+        response: '{"status":"ok","data":{"code":"XFA","country":"South Africa","carrier":"Unlocked"}}' },
+    ]
+  },
+  {
+    category: 'Admin',
+    items: [
+      { method: 'GET', path: '/api/v1/admin/stats', desc: 'System statistics', auth: true,
+        response: '{"status":"ok","data":{"database":{"device_sessions":1,"firmware_records":0}}}' },
+      { method: 'POST', path: '/api/v1/admin/keys', desc: 'Create new API key', auth: 'write',
+        body: '{"name": "My App", "permissions": "read"}',
+        response: '{"status":"ok","data":{"key":"sft_xxx...","permissions":"read"}}' },
+    ]
+  }
+];
+
+var container = document.getElementById('apiEndpoints');
+endpoints.forEach(function(cat) {
+  var catHtml = '<div style="margin-bottom:2rem">' +
+    '<h3 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--gray-200)">' + cat.category + '</h3>';
+
+  cat.items.forEach(function(ep) {
+    var methodColor = ep.method === 'GET' ? 'var(--green)' : (ep.method === 'POST' ? 'var(--amber)' : 'var(--blue)');
+    var authBadge = ep.auth ? '<span class="status-chip" style="font-size:.55rem;padding:.1rem .3rem;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)">Auth</span>' : '<span class="status-chip" style="font-size:.55rem;padding:.1rem .3rem;background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)">Public</span>';
+    if (ep.auth === 'write') authBadge = '<span class="status-chip" style="font-size:.55rem;padding:.1rem .3rem;background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)">Write</span>';
+
+    catHtml += '<div class="card" style="margin-bottom:.75rem">' +
+      '<div class="card-body">' +
+        '<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem;flex-wrap:wrap">' +
+          '<span style="font-family:var(--font-mono);font-size:.7rem;font-weight:700;color:' + methodColor + ';background:rgba(0,0,0,.04);padding:.2rem .5rem;border-radius:3px">' + ep.method + '</span>' +
+          '<code style="font-size:.78rem;color:var(--gray-700)">' + ep.path + (ep.params || '') + '</code>' +
+          authBadge +
+        '</div>' +
+        '<p class="text-sm" style="color:var(--gray-600);margin-bottom:.5rem">' + ep.desc + '</p>';
+
+    if (ep.body) {
+      catHtml += '<div style="margin-bottom:.5rem"><span class="text-xs" style="color:var(--gray-400)">Body:</span><pre style="background:var(--navy);color:var(--gray-300);font-family:var(--font-mono);font-size:.68rem;padding:.5rem;border-radius:4px;margin-top:.25rem;overflow-x:auto">' + ep.body + '</pre></div>';
+    }
+
+    catHtml += '<div><span class="text-xs" style="color:var(--gray-400)">Response:</span><pre style="background:var(--gray-50);font-family:var(--font-mono);font-size:.68rem;padding:.5rem;border-radius:4px;margin-top:.25rem;overflow-x:auto;color:var(--gray-600)">' + ep.response + '</pre></div>' +
+      '</div></div>';
+  });
+
+  catHtml += '</div>';
+  container.innerHTML += catHtml;
+});
+</script>
+
+{% endblock %}

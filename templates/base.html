@@ -22,9 +22,12 @@
         <li><a href="/" {% if request.path == '/' %}class="active"{% endif %}>Home</a></li>
         <li><a href="/device-status" {% if request.path == '/device-status' %}class="active"{% endif %}>Device</a></li>
         <li><a href="/flash-guide" {% if request.path == '/flash-guide' %}class="active"{% endif %}>Flash</a></li>
-        <li><a href="/models" {% if request.path == '/models' %}class="active"{% endif %}>Models</a></li>
         <li><a href="/reset-wizard" {% if request.path == '/reset-wizard' %}class="active"{% endif %}>Reset</a></li>
         <li><a href="/firmware-table" {% if request.path == '/firmware-table' %}class="active"{% endif %}>Firmware</a></li>
+        <li><a href="/csc-browser" {% if request.path == '/csc-browser' %}class="active"{% endif %}>CSC</a></li>
+        <li><a href="/device-history" {% if request.path == '/device-history' %}class="active"{% endif %}>History</a></li>
+        <li><a href="/api-docs" {% if request.path == '/api-docs' %}class="active"{% endif %}>API</a></li>
+        <li><a href="/models" {% if request.path == '/models' %}class="active"{% endif %}>Models</a></li>
         <li><a href="/removal" {% if request.path == '/removal' %}class="active"{% endif %}>Removal</a></li>
         <li><a href="/test" {% if request.path == '/test' %}class="active"{% endif %}>Test</a></li>
         <li><a href="/override" {% if request.path == '/override' %}class="active"{% endif %}>Override</a></li>

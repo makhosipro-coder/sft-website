@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}CSC Browser — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Database</span>
+    <h1>CSC Browser</h1>
+    <p>Search 252+ Country Specific Codes. Filter by region, carrier, and features.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <!-- Stats -->
+    <div class="grid-4" style="margin-bottom:1.5rem">
+      <div class="card"><div class="card-body" style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--navy)" id="cscTotal">—</div>
+        <div class="text-xs text-dim">Total Codes</div>
+      </div></div>
+      <div class="card"><div class="card-body" style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--green)" id="cscSA">—</div>
+        <div class="text-xs text-dim">South Africa</div>
+      </div></div>
+      <div class="card"><div class="card-body" style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--blue)" id="cscRegions">—</div>
+        <div class="text-xs text-dim">Regions</div>
+      </div></div>
+      <div class="card"><div class="card-body" style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--amber)" id="cscPay">—</div>
+        <div class="text-xs text-dim">Samsung Pay</div>
+      </div></div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Search</label>
+            <input type="text" id="cscSearch" placeholder="Country, carrier, or code..." oninput="searchCsc()" style="font-family:var(--font-mono)">
+          </div>
+          <div class="form-group">
+            <label>Region</label>
+            <select id="cscRegionFilter" onchange="searchCsc()">
+              <option value="">All Regions</option>
+              <option value="OXM">Europe (OXM)</option>
+              <option value="OWO">Latin America (OWO)</option>
+              <option value="OXX">Asia/Pacific (OXX)</option>
+              <option value="OXE">Southeast Asia (OXE)</option>
+              <option value="OYM">Middle East & Africa (OYM)</option>
+              <option value="OXA">Australia/NZ (OXA)</option>
+              <option value="Single">Single CSC</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Carrier Type</label>
+            <select id="cscTypeFilter" onchange="searchCsc()">
+              <option value="">All Types</option>
+              <option value="unlocked">Unlocked</option>
+              <option value="carrier">Carrier</option>
+              <option value="mvno">MVNO</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+        <h3>RESULTS <span id="cscResultCount" style="font-size:.7rem;color:var(--gray-400);font-weight:400"></span></h3>
+      </div>
+      <div class="card-body" style="padding:0;overflow-x:auto;max-height:600px;overflow-y:auto">
+        <table class="data-table" id="cscTable">
+          <thead><tr>
+            <th>Code</th><th>Country</th><th>Carrier</th><th>Region</th><th>Type</th><th>Pay</th><th>5G</th><th>VoLTE</th>
+          </tr></thead>
+          <tbody id="cscBody">
+            <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--gray-400)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+var allCscData = [];
+
+function loadCscData() {
+  fetch('/api/v1/csc/stats')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var s = d.data || {};
+      document.getElementById('cscTotal').textContent = s.total_codes || 0;
+      document.getElementById('cscSA').textContent = s.south_africa_codes || 0;
+      document.getElementById('cscRegions').textContent = Object.keys(s.regions || {}).length;
+    })
+    .catch(function() {});
+
+  // Load all CSC codes
+  fetch('/api/v1/csc/search?limit=500')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      allCscData = d.data || [];
+      // Count Samsung Pay
+      var payCount = allCscData.filter(function(c) { return c.samsung_pay === true; }).length;
+      document.getElementById('cscPay').textContent = payCount;
+      searchCsc();
+    })
+    .catch(function() {
+      document.getElementById('cscBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--red)">Failed to load CSC data</td></tr>';
+    });
+}
+
+function searchCsc() {
+  var q = (document.getElementById('cscSearch').value || '').toUpperCase();
+  var region = document.getElementById('cscRegionFilter').value;
+  var type = document.getElementById('cscTypeFilter').value;
+
+  var results = allCscData.filter(function(c) {
+    if (q && !c.code.includes(q) && !c.country.toUpperCase().includes(q) && !c.carrier.toUpperCase().includes(q)) return false;
+    if (region && c.multi_group !== region) return false;
+    if (type && c.type !== type) return false;
+    return true;
+  });
+
+  document.getElementById('cscResultCount').textContent = '(' + results.length + ' codes)';
+  var tbody = document.getElementById('cscBody');
+
+  if (results.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--gray-400)">No matching CSC codes</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  results.forEach(function(c) {
+    tbody.innerHTML += '<tr>' +
+      '<td><span class="csc-badge">' + c.code + '</span></td>' +
+      '<td style="font-size:.75rem;font-weight:600">' + c.country + '</td>' +
+      '<td style="font-size:.72rem;color:var(--gray-600)">' + c.carrier + '</td>' +
+      '<td><span class="status-chip" style="font-size:.55rem;padding:.1rem .35rem;background:var(--blue-light);color:var(--blue);border:1px solid rgba(20,40,160,.1)">' + (c.multi_group || 'Single') + '</span></td>' +
+      '<td><span class="status-chip" style="font-size:.55rem;padding:.1rem .35rem;' + (c.type === 'unlocked' ? 'background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)' : 'background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200)') + '">' + (c.type || '—') + '</span></td>' +
+      '<td style="text-align:center">' + (c.samsung_pay === true ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--gray-300)">—</span>') + '</td>' +
+      '<td style="text-align:center">' + (c['5g'] === true ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--gray-300)">—</span>') + '</td>' +
+      '<td style="text-align:center">' + (c.volte === true ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--gray-300)">—</span>') + '</td>' +
+    '</tr>';
+  });
+}
+
+// Load on page load
+loadCscData();
+</script>
+
+{% endblock %}

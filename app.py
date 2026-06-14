@@ -124,6 +124,18 @@ def override():
     devices = detect_usb_devices()
     return render_template('override.html', devices=devices)
 
+@app.route('/api-docs')
+def api_docs():
+    return render_template('api_docs.html')
+
+@app.route('/device-history')
+def device_history():
+    return render_template('device_history.html')
+
+@app.route('/csc-browser')
+def csc_browser():
+    return render_template('csc_browser.html')
+
 
 # ─── Legacy API Routes (v0) ──────────────────────────────────────────────
 
