@@ -26,10 +26,9 @@ print(f'  Detected: {r.detected}, Mode: {r.connection_mode}, Method: {r.detectio
 
 # 2. Run firmware parser test
 echo "[$DATE] Running firmware parser test..." >> "$LOG_FILE"
-PYTHONPATH="$PROJECT_DIR" python3 -c "
-import sys, os
-sys.path.insert(0, '$PROJECT_DIR')
-os.chdir('$PROJECT_DIR')
+cd "$PROJECT_DIR" && python3 -c "
+import sys
+sys.path.insert(0, '.')
 from firmware_parser import parse_firmware_string
 r = parse_firmware_string('A042FXXSFEZB9')
 print(f'  Parser OK: {r.model_name} ({r.chipset_hint}), CSC: {r.csc}, Android: {r.android}')
