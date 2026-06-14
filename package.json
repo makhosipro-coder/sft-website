@@ -1,0 +1,12 @@
+{
+  "name": "sft-website",
+  "version": "2.5.0",
+  "description": "Samsung Firmware Tool — Device detection, firmware management, and flashing guidance",
+  "scripts": {
+    "build": "echo 'SFT v2.5.0 build complete'",
+    "start": "python3 app.py"
+  },
+  "dependencies": {
+    "flask": "^3.0.0"
+  }
+}

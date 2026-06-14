@@ -1,0 +1,39 @@
+# Netlify Configuration for SFT — Samsung Firmware Tool
+# https://netlify.com
+
+[build]
+  # Build command — install dependencies and prepare static files
+  command = "pip install flask requests && python3 -c \"import flask; print('Flask OK')\""
+  # Publish directory
+  publish = "."
+  
+[build.environment]
+  PYTHON_VERSION = "3.9"
+
+# Redirect all routes to the Flask app (via Netlify Functions or static)
+# For Flask on Netlify, we use a serverless function wrapper
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/flask/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}
+
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
