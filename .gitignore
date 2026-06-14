@@ -47,3 +47,6 @@ firmware/
 node_modules/
 *.apk
 *.aab
+
+# Local Netlify folder
+.netlify

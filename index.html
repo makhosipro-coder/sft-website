@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SFT — Samsung Firmware Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <div class="logo-mark">SFT</div>
+      <span class="logo-text">Samsung Firmware Tool</span>
+    </a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="/" class="active">Home</a></li>
+        <li><a href="https://github.com/makhosipro-coder/sft-website">GitHub</a></li>
+        <li><a href="https://github.com/makhosipro-coder/sft-website#api-reference">API</a></li>
+      </ul>
+    </nav>
+    <div class="header-cta">
+      <span class="status-dot active" id="headerDot"></span>
+      <span id="headerStatus" style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray-400)">ONLINE</span>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-scan">
+        <span class="dot"></span>
+        <span>Netlify Deployment — v2.5.1</span>
+      </div>
+      <h1 class="animate-in">Samsung Firmware <span class="accent">Tool</span></h1>
+      <p class="subtitle animate-in delay-1">Device Detection — Firmware Management — Flashing Guidance</p>
+      <p class="description animate-in delay-2">Open-source Samsung firmware utility. Detects connected devices, parses firmware strings, validates tar.md5 files, and provides step-by-step Odin flashing instructions. 237+ CSC codes. 82 device models.</p>
+      <div class="hero-ctas animate-in delay-3">
+        <a href="https://github.com/makhosipro-coder/sft-website" class="btn btn-primary">⭐ GitHub</a>
+        <a href="https://github.com/makhosipro-coder/sft-website#quick-start" class="btn btn-outline">Run Locally</a>
+      </div>
+    </div>
+    <div class="console-card animate-in delay-2">
+      <div class="console-header">
+        <span class="title">sft-status — bash</span>
+        <span class="badge">&#9679; LIVE</span>
+      </div>
+      <div class="console-body">
+        <div class="console-line"><span class="time">[00:00:01]</span><span class="msg">&gt; SFT v2.5.1 initialized</span></div>
+        <div class="console-line"><span class="time">[00:00:02]</span><span class="msg ok">&gt; CSC database loaded: 237 codes</span></div>
+        <div class="console-line"><span class="time">[00:00:03]</span><span class="msg ok">&gt; Device models: 82 entries</span></div>
+        <div class="console-line"><span class="time">[00:00:04]</span><span class="msg ok">&gt; Firmware parser: ready</span></div>
+        <div class="console-line"><span class="time">[00:00:05]</span><span class="msg ok">&gt; FOTA checker: ready</span></div>
+        <div class="console-line"><span class="time">[00:00:06]</span><span class="msg ok">&gt; Rollback prevention: active</span></div>
+        <div class="console-line"><span class="time">[00:00:07]</span><span class="msg ok">&gt; Netlify deployment: live</span></div>
+        <div class="console-line"><span class="time">[00:00:08]</span><span class="msg ok">&gt; GitHub: makhosipro-coder/sft-website</span></div>
+        <div class="console-line"><span class="time">[00:00:09]</span><span class="msg ok">&gt; Status: ALL SYSTEMS GO ✓</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Features</span>
+      <h2>What SFT Does</h2>
+    </div>
+    <div class="reset-grid">
+      <div class="reset-card">
+        <div class="icon">🔍</div>
+        <h4>Auto-Detection</h4>
+        <p>Detects Samsung devices via ADB, Fastboot, Heimdall PIT, and USB descriptors. Reads model, serial, firmware, CSC, chipset, and battery.</p>
+      </div>
+      <div class="reset-card">
+        <div class="icon">🔧</div>
+        <h4>Firmware Decoder</h4>
+        <p>Parses 13-character Samsung firmware strings into hardware, market, update, and build segments. Instant identification.</p>
+      </div>
+      <div class="reset-card">
+        <div class="icon">🛡️</div>
+        <h4>Rollback Prevention</h4>
+        <p>Hardware mismatch, chipset mismatch, and bootloader version checks. Prevents bricking from incompatible firmware.</p>
+      </div>
+    </div>
+    <div class="reset-grid" style="margin-top:1.5rem">
+      <div class="reset-card">
+        <div class="icon">🌍</div>
+        <h4>CSC Database</h4>
+        <p>237+ Country Specific Codes with carrier, region, Samsung Pay, VoLTE, and 5G support. Includes 25 South African codes.</p>
+      </div>
+      <div class="reset-card">
+        <div class="icon">📱</div>
+        <h4>Flash Guide</h4>
+        <p>Step-by-step Odin flashing instructions with model-specific guidance. CSC vs HOME_CSC, pre-flash checklist, post-flash verification.</p>
+      </div>
+      <div class="reset-card">
+        <div class="icon">✅</div>
+        <h4>Firmware Validation</h4>
+        <p>tar.md5 integrity verification, content listing, MD5 checksum. Ensures firmware files are not corrupted before flashing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- API -->
+<section class="section" style="background:var(--gray-100)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">API</span>
+      <h2>REST API Endpoints</h2>
+      <p>Full JSON API for device detection, firmware parsing, and CSC lookup. Run locally for full functionality.</p>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <table class="data-table">
+          <thead><tr><th>Endpoint</th><th>Method</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="text-mono">/api/device/detect</td><td>GET</td><td>Full auto-detect (ADB→Fastboot→Heimdall→USB)</td></tr>
+            <tr><td class="text-mono">/api/device/status</td><td>GET</td><td>Quick connection check</td></tr>
+            <tr><td class="text-mono">/api/device/models</td><td>GET</td><td>List 82 known Samsung models</td></tr>
+            <tr><td class="text-mono">/api/firmware/validate</td><td>POST</td><td>Validate tar.md5 firmware file</td></tr>
+            <tr><td class="text-mono">/api/command</td><td>POST</td><td>Execute ADB/fastboot/heimdall command</td></tr>
+            <tr><td class="text-mono">/api/heimdall/pit</td><td>GET</td><td>Read PIT via Heimdall</td></tr>
+            <tr><td class="text-mono">/api/adb/getprop</td><td>GET</td><td>Get device property via ADB</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-tagline">&copy; 2026 Samsung Firmware Tool. MIT License.</div>
+        <div class="footer-copy">Not affiliated with Samsung Electronics Co., Ltd.</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray-500)">v2.5.1 | <a href="https://github.com/makhosipro-coder/sft-website" style="color:var(--gray-400)">GitHub</a> | <a href="https://sft-sprutting.netlify.app" style="color:var(--gray-400)">Netlify</a></div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
