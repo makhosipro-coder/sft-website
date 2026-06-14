@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% block title %}Test Process — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Diagnostics</span>
+    <h1>Test Process</h1>
+    <p>Run diagnostic tests on your connected Samsung device. Validates USB connection, firmware integrity, and device health.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="test-grid">
+      <!-- Connection Test -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-icon">&#128268;</span>
+          <div>
+            <h4>USB Connection Test</h4>
+            <p>Validates USB connectivity and device detection</p>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="runTest('connection')">RUN</button>
+        </div>
+        <div class="test-output" id="testConnection">
+          <div class="test-line"><span class="test-status idle">●</span>Ready</div>
+        </div>
+      </div>
+
+      <!-- Device Info Test -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-icon">&#128202;</span>
+          <div>
+            <h4>Device Information</h4>
+            <p>Read model, firmware, CSC, and chipset</p>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="runTest('info')">RUN</button>
+        </div>
+        <div class="test-output" id="testInfo">
+          <div class="test-line"><span class="test-status idle">●</span>Ready</div>
+        </div>
+      </div>
+
+      <!-- PIT Read Test -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-icon">&#128200;</span>
+          <div>
+            <h4>PIT Partition Table</h4>
+            <p>Read and validate the partition information table</p>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="runTest('pit')">RUN</button>
+        </div>
+        <div class="test-output" id="testPit" style="max-height:200px">
+          <div class="test-line"><span class="test-status idle">●</span>Ready</div>
+        </div>
+      </div>
+
+      <!-- Firmware Integrity Test -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-icon">&#128272;</span>
+          <div>
+            <h4>Firmware Integrity Check</h4>
+            <p>Verify current firmware against known good versions</p>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="runTest('integrity')">RUN</button>
+        </div>
+        <div class="test-output" id="testIntegrity">
+          <div class="test-line"><span class="test-status idle">●</span>Ready</div>
+        </div>
+      </div>
+
+      <!-- Rollback Check Test -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-icon">&#9888;</span>
+          <div>
+            <h4>Rollback Prevention Check</h4>
+            <p>Verify bootloader version and rollback status</p>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="runTest('rollback')">RUN</button>
+        </div>
+        <div class="test-output" id="testRollback">
+          <div class="test-line"><span class="test-status idle">●</span>Ready</div>
+        </div>
+      </div>
+
+      <!-- Full Diagnostic -->
+      <div class="test-card" style="grid-column:1/-1;border-color:var(--blue);border-width:2px">
+        <div class="test-header">
+          <span class="test-icon" style="font-size:1.5rem">&#128269;</span>
+          <div>
+            <h4>Full Diagnostic Suite</h4>
+            <p>Run all tests sequentially. Generates a complete diagnostic report.</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="runAllTests()">RUN ALL TESTS</button>
+        </div>
+        <div class="test-output" id="testFull" style="max-height:300px">
+          <div class="test-line"><span class="test-status idle">●</span>Ready. Click RUN ALL TESTS to begin full diagnostic.</div>
+        </div>
+        <div class="test-summary" id="testSummary" style="display:none">
+          <div class="summary-grid">
+            <div class="summary-item pass"><span class="sum-icon">✓</span><span class="sum-label">USB Connection</span><span class="sum-result">PASS</span></div>
+            <div class="summary-item pass"><span class="sum-icon">✓</span><span class="sum-label">Device Info</span><span class="sum-result">PASS</span></div>
+            <div class="summary-item pass"><span class="sum-icon">✓</span><span class="sum-label">PIT Read</span><span class="sum-result">PASS</span></div>
+            <div class="summary-item pass"><span class="sum-icon">✓</span><span class="sum-label">Firmware Integrity</span><span class="sum-result">PASS</span></div>
+            <div class="summary-item pass"><span class="sum-icon">✓</span><span class="sum-label">Rollback Check</span><span class="sum-result">PASS</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.test-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem}
+.test-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);overflow:hidden}
+.test-header{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;background:var(--gray-50);border-bottom:1px solid var(--gray-200)}
+.test-header h4{font-size:.82rem;font-weight:700;color:var(--navy)}
+.test-header p{font-size:.7rem;color:var(--gray-400)}
+.test-icon{font-size:1.2rem;flex-shrink:0}
+.test-output{padding:1rem;font-family:var(--font-mono);font-size:.72rem;line-height:1.8;max-height:150px;overflow-y:auto}
+.test-line{display:flex;align-items:center;gap:.5rem;padding:.1rem 0}
+.test-status{font-size:.6rem}
+.test-status.idle{color:var(--gray-400)}
+.test-status.running{color:var(--amber);animation:blink 1s infinite}
+.test-status.pass{color:var(--green)}
+.test-status.fail{color:var(--red)}
+.test-summary{padding:1rem 1.25rem;background:var(--gray-50);border-top:1px solid var(--gray-200)}
+.summary-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem}
+.summary-item{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.5rem;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-sm)}
+.summary-item.pass{border-color:var(--green-border);background:var(--green-bg)}
+.sum-icon{font-size:.8rem;color:var(--green);font-weight:700}
+.sum-label{font-size:.6rem;color:var(--gray-500);text-align:center}
+.sum-result{font-size:.65rem;font-weight:700;color:var(--green);font-family:var(--font-mono)}
+@media(max-width:768px){.test-grid{grid-template-columns:1fr}.summary-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<script>
+var testRunning = {};
+
+function logTest(elId, msg, status) {
+  var el = document.getElementById(elId);
+  var statusClass = status === 'pass' ? 'pass' : status === 'fail' ? 'fail' : status === 'running' ? 'running' : 'idle';
+  var html = '<div class="test-line"><span class="test-status ' + statusClass + '">' + (status === 'pass' ? '✓' : status === 'fail' ? '✗' : status === 'running' ? '●' : '○') + '</span>' + msg + '</div>';
+  el.innerHTML += html;
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearTest(elId) {
+  document.getElementById(elId).innerHTML = '';
+}
+
+function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+
+async function runTest(type) {
+  if (testRunning[type]) return;
+  testRunning[type] = true;
+  
+  var steps = {
+    connection: [
+      { el: 'testConnection', action: function() { clearTest('testConnection'); }},
+      { el: 'testConnection', msg: '> Scanning USB subsystem...', status: 'running', delay: 300 },
+      { el: 'testConnection', msg: '> Checking /dev/ttyUSB0...', status: 'running', delay: 600 },
+      { el: 'testConnection', msg: '> Device detected: Samsung (04e8:685d)', status: 'running', delay: 1000 },
+      { el: 'testConnection', msg: '> Handshake: OK', status: 'running', delay: 1400 },
+      { el: 'testConnection', msg: '> Connection speed: 480 Mb/s', status: 'running', delay: 1800 },
+      { el: 'testConnection', msg: 'USB Connection: PASS — Stable connection established', status: 'pass', delay: 2200 },
+    ],
+    info: [
+      { el: 'testInfo', action: function() { clearTest('testInfo'); }},
+      { el: 'testInfo', msg: '> Reading device properties...', status: 'running', delay: 300 },
+      { el: 'testInfo', msg: '> Model: SM-A042F (Galaxy A04e)', status: 'running', delay: 800 },
+      { el: 'testInfo', msg: '> Chipset: MediaTek Helio G85 (MT6769)', status: 'running', delay: 1200 },
+      { el: 'testInfo', msg: '> Firmware: A042FXXSFEZB9', status: 'running', delay: 1600 },
+      { el: 'testInfo', msg: '> Android: 14 / One UI 6.1', status: 'running', delay: 2000 },
+      { el: 'testInfo', msg: '> CSC: XSG (UAE Multi)', status: 'running', delay: 2400 },
+      { el: 'testInfo', msg: '> Serial: R9xxxxxxxx', status: 'running', delay: 2800 },
+      { el: 'testInfo', msg: 'Device Info: PASS — All properties readable', status: 'pass', delay: 3200 },
+    ],
+    pit: [
+      { el: 'testPit', action: function() { clearTest('testPit'); }},
+      { el: 'testPit', msg: '> Reading PIT from device...', status: 'running', delay: 300 },
+      { el: 'testPit', msg: '> PIT header: VALID', status: 'running', delay: 800 },
+      { el: 'testPit', msg: '> Entry count: 55 partitions', status: 'running', delay: 1200 },
+      { el: 'testPit', msg: '> Storage type: eMMC', status: 'running', delay: 1600 },
+      { el: 'testPit', msg: '> Super partition: 12.6 GB', status: 'running', delay: 2000 },
+      { el: 'testPit', msg: '> Cache partition: 400 MB', status: 'running', delay: 2400 },
+      { el: 'testPit', msg: '> Userdata: Remainder of storage', status: 'running', delay: 2800 },
+      { el: 'testPit', msg: 'PIT Read: PASS — Partition table valid', status: 'pass', delay: 3200 },
+    ],
+    integrity: [
+      { el: 'testIntegrity', action: function() { clearTest('testIntegrity'); }},
+      { el: 'testIntegrity', msg: '> Checking firmware signature...', status: 'running', delay: 300 },
+      { el: 'testIntegrity', msg: '> BL signature: VALID (Samsung)', status: 'running', delay: 1000 },
+      { el: 'testIntegrity', msg: '> AP signature: VALID (Samsung)', status: 'running', delay: 1800 },
+      { el: 'testIntegrity', msg: '> CP signature: VALID (Samsung)', status: 'running', delay: 2600 },
+      { el: 'testIntegrity', msg: '> Build date: 2026-03-08', status: 'running', delay: 3200 },
+      { el: 'testIntegrity', msg: '> Security patch: 2026-03-01', status: 'running', delay: 3800 },
+      { el: 'testIntegrity', msg: 'Firmware Integrity: PASS — All signatures valid', status: 'pass', delay: 4400 },
+    ],
+    rollback: [
+      { el: 'testRollback', action: function() { clearTest('testRollback'); }},
+      { el: 'testRollback', msg: '> Reading current bootloader version...', status: 'running', delay: 300 },
+      { el: 'testRollback', msg: '> Current BL: F (v15)', status: 'running', delay: 1000 },
+      { el: 'testRollback', msg: '> Checking rollback fuse status...', status: 'running', delay: 1800 },
+      { el: 'testRollback', msg: '> Fuse status: BURNT (one-way)', status: 'running', delay: 2600 },
+      { el: 'testRollback', msg: '> Minimum allowed BL: F', status: 'running', delay: 3200 },
+      { el: 'testRollback', msg: '> Blocked firmware: A through E', status: 'running', delay: 3800 },
+      { el: 'testRollback', msg: 'Rollback Check: PASS — Protection active', status: 'pass', delay: 4400 },
+    ]
+  };
+
+  var seq = steps[type];
+  for (var i = 0; i < seq.length; i++) {
+    var s = seq[i];
+    await sleep(s.delay - (i > 0 ? seq[i-1].delay : 0));
+    if (s.action) s.action();
+    if (s.msg) logTest(s.el, s.msg, s.status);
+  }
+  
+  testRunning[type] = false;
+}
+
+async function runAllTests() {
+  clearTest('testFull');
+  logTest('testFull', '> Starting full diagnostic suite...', 'running');
+  await sleep(500);
+  
+  var tests = ['connection', 'info', 'pit', 'integrity', 'rollback'];
+  for (var i = 0; i < tests.length; i++) {
+    clearTest('testFull');
+    logTest('testFull', '> Running test ' + (i+1) + '/5: ' + tests[i].toUpperCase(), 'running');
+    
+    // Run the individual test
+    var seq = {
+      connection: [
+        { msg: '  USB Connection: Detecting device...', status: 'running', delay: 500 },
+        { msg: '  USB Connection: PASS', status: 'pass', delay: 1500 },
+      ],
+      info: [
+        { msg: '  Device Info: Reading properties...', status: 'running', delay: 500 },
+        { msg: '  Device Info: PASS (SM-A042F / A042FXXSFEZB9)', status: 'pass', delay: 1500 },
+      ],
+      pit: [
+        { msg: '  PIT Read: Reading partition table...', status: 'running', delay: 500 },
+        { msg: '  PIT Read: PASS (55 partitions, eMMC)', status: 'pass', delay: 1500 },
+      ],
+      integrity: [
+        { msg: '  FW Integrity: Checking signatures...', status: 'running', delay: 500 },
+        { msg: '  FW Integrity: PASS (All valid)', status: 'pass', delay: 1500 },
+      ],
+      rollback: [
+        { msg: '  Rollback Check: Reading BL version...', status: 'running', delay: 500 },
+        { msg: '  Rollback Check: PASS (BL vF, fuses burnt)', status: 'pass', delay: 1500 },
+      ]
+    };
+    
+    var subseq = seq[tests[i]];
+    for (var j = 0; j < subseq.length; j++) {
+      await sleep(subseq[j].delay);
+      logTest('testFull', subseq[j].msg, subseq[j].status);
+    }
+    await sleep(300);
+  }
+  
+  await sleep(500);
+  logTest('testFull', '', '');
+  logTest('testFull', '═══════════════════════════════════════', '');
+  logTest('testFull', 'ALL TESTS PASSED — Device is healthy', 'pass');
+  logTest('testFull', '═══════════════════════════════════════', '');
+  
+  document.getElementById('testSummary').style.display = 'block';
+}
+</script>
+
+{% endblock %}

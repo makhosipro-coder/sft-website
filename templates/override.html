@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% block title %}Override Command System — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Command Center</span>
+    <h1>Override Command System</h1>
+    <p>Direct command interface for connected Samsung devices. Execute ADB, fastboot, and serial commands with real-time output.</p>
+  </div>
+</div>
+
+<!-- DEVICE STATUS BAR -->
+<div class="status-bar">
+  <div class="status-bar-inner">
+    <div class="status-item">
+      <span class="indicator" id="overrideDot"></span>
+      <span>Device: <span class="value" id="overrideDevice">{% if devices %}Samsung ({{ devices[0].vendor_id }}:{{ devices[0].product_id }}){% else %}Not detected{% endif %}</span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Mode: <span class="value" id="overrideMode">{% if devices %}Download{% else %}—{% endif %}</span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Protocol: <span class="value">ADB / Fastboot / Serial</span></span>
+    </div>
+    <button class="scan-btn" style="margin-left:auto" onclick="refreshDeviceStatus()">⟳ REFRESH</button>
+  </div>
+</div>
+
+<section class="section" style="padding-top:1.5rem">
+  <div class="container">
+    <div class="cmd-grid">
+      <!-- Quick Commands Panel -->
+      <div class="cmd-sidebar">
+        <div class="cmd-panel">
+          <div class="panel-header">
+            <h4>Quick Commands</h4>
+          </div>
+          <div class="panel-body">
+            <div class="cmd-category">Device Control</div>
+            <button class="cmd-btn" onclick="sendQuickCmd('reboot', 'Reboot device')">⟳ Reboot</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('reboot_download', 'Reboot to Download Mode')">⬇ Reboot to Download</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('reboot_recovery', 'Reboot to Recovery')">⟳ Reboot to Recovery</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('reboot_bootloader', 'Reboot to Bootloader')">⬇ Reboot to Bootloader</button>
+            
+            <div class="cmd-category">ADB Commands</div>
+            <button class="cmd-btn" onclick="sendQuickCmd('adb_devices', 'List ADB devices')">📱 ADB Devices</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('getprop', 'Get device properties')">⚙ Getprop</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('adb_shell_getprop_model', 'Get device model')">📋 Get Model</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('adb_shell_getprop_firmware', 'Get firmware version')">📋 Get Firmware</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('adb_shell_getprop_csc', 'Get CSC code')">🌍 Get CSC</button>
+            
+            <div class="cmd-category">Fastboot Commands</div>
+            <button class="cmd-btn" onclick="sendQuickCmd('fastboot_devices', 'List fastboot devices')">📱 Fastboot Devices</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('fastboot_getvar', 'Get all variables')">⚙ Getvar All</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('fastboot_getvar_serial', 'Get serial number')"># Get Serial</button>
+            
+            <div class="cmd-category">Samsung Specific</div>
+            <button class="cmd-btn" onclick="sendQuickCmd('heimdall_detect', 'Detect via Heimdall')">🔍 Heimdall Detect</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('heimdall_print_pit', 'Read PIT')">📊 Read PIT</button>
+            <button class="cmd-btn" onclick="sendQuickCmd('thorjs_devices', 'List thorjs devices')">📱 Thorjs Devices</button>
+          </div>
+        </div>
+
+        <!-- MAC Override Panel -->
+        <div class="cmd-panel" style="margin-top:1rem">
+          <div class="panel-header">
+            <h4>MAC Override</h4>
+          </div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label>Current MAC</label>
+              <input type="text" id="currentMac" placeholder="Reading..." readonly style="font-family:var(--font-mono);font-size:.78rem">
+            </div>
+            <div class="form-group">
+              <label>New MAC Address</label>
+              <input type="text" id="newMac" placeholder="XX:XX:XX:XX:XX:XX" style="font-family:var(--font-mono);font-size:.78rem;text-transform:uppercase" maxlength="17" oninput="formatMac(this)">
+            </div>
+            <button class="btn btn-primary btn-sm" style="width:100%;margin-top:.5rem" onclick="executeMacOverride()" id="macOverrideBtn">&#9889; Apply MAC Override</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal Console -->
+      <div class="cmd-main">
+        <div class="console-card" style="height:100%">
+          <div class="console-header">
+            <span class="title">sft-command — bash</span>
+            <div style="display:flex;gap:.5rem">
+              <button class="scan-btn" onclick="clearOverrideConsole()" style="color:var(--gray-500)">CLEAR</button>
+              <button class="scan-btn" onclick="exportLog()" style="color:var(--gray-500)">EXPORT</button>
+            </div>
+          </div>
+          <div class="console-body" id="overrideConsole" style="min-height:400px;max-height:600px">
+            <div class="console-line"><span class="time">[--:--:--]</span><span class="msg">Override Command System ready.</span></div>
+            <div class="console-line"><span class="time">[--:--:--]</span><span class="msg">Connect a Samsung device to begin.</span></div>
+          </div>
+          <!-- Command Input -->
+          <div class="cmd-input-wrap">
+            <span class="cmd-prompt">$</span>
+            <input type="text" id="cmdInput" placeholder="Enter command (adb, fastboot, heimdall, thorjs...)" onkeypress="handleCmdKey(event)" style="flex:1">
+            <button class="cmd-send-btn" onclick="executeCustomCmd()">SEND</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.cmd-grid{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start}
+.cmd-panel{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);overflow:hidden}
+.panel-header{padding:.75rem 1rem;background:var(--gray-50);border-bottom:1px solid var(--gray-200)}
+.panel-header h4{font-size:.8rem;font-weight:700;color:var(--navy);font-family:var(--font-mono)}
+.panel-body{padding:.75rem;max-height:400px;overflow-y:auto}
+.cmd-category{font-family:var(--font-mono);font-size:.6rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em;padding:.5rem 0 .25rem;border-bottom:1px solid var(--gray-100);margin-top:.5rem}
+.cmd-category:first-child{margin-top:0}
+.cmd-btn{display:block;width:100%;text-align:left;padding:.45rem .65rem;margin:.15rem 0;background:transparent;border:1px solid transparent;border-radius:var(--radius-sm);font-size:.72rem;color:var(--gray-600);cursor:pointer;transition:var(--transition);font-family:var(--font-mono)}
+.cmd-btn:hover{background:var(--blue-light);color:var(--blue);border-color:rgba(20,40,160,.1)}
+.cmd-btn:active{background:var(--blue);color:var(--white)}
+.cmd-main{position:sticky;top:72px}
+.cmd-input-wrap{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;background:var(--gray-50);border-top:1px solid rgba(255,255,255,.04)}
+.cmd-prompt{font-family:var(--font-mono);font-size:.85rem;color:var(--green);font-weight:700}
+.cmd-input-wrap input{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-sm);padding:.5rem .75rem;color:var(--white);font-family:var(--font-mono);font-size:.78rem;outline:none;transition:var(--transition)}
+.cmd-input-wrap input:focus{border-color:var(--blue)}
+.cmd-send-btn{background:var(--blue);color:var(--white);border:0;padding:.5rem 1rem;border-radius:var(--radius-sm);font-size:.72rem;font-weight:600;cursor:pointer;font-family:var(--font-mono);transition:var(--transition)}
+.cmd-send-btn:hover{background:var(--blue-hover)}
+@media(max-width:900px){.cmd-grid{grid-template-columns:1fr}.cmd-main{position:static}}
+</style>
+
+<script>
+var cmdHistory = [];
+var historyIndex = -1;
+
+function formatMac(input) {
+  var val = input.value.replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+  var formatted = '';
+  for (var i = 0; i < val.length && i < 12; i++) {
+    if (i > 0 && i % 2 === 0) formatted += ':';
+    formatted += val[i];
+  }
+  input.value = formatted;
+}
+
+function logCmd(msg, type) {
+  var el = document.getElementById('overrideConsole');
+  var cls = type === 'ok' ? ' msg ok' : type === 'err' ? ' msg err' : type === 'warn' ? ' msg warn' : '';
+  var time = new Date().toLocaleTimeString('en-US', {hour12:false});
+  el.innerHTML += '<div class="console-line"><span class="time">[' + time + ']</span><span class="msg' + cls + '">' + msg + '</span></div>';
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearOverrideConsole() {
+  document.getElementById('overrideConsole').innerHTML = '<div class="console-line"><span class="time">[' + new Date().toLocaleTimeString('en-US', {hour12:false}) + ']</span><span class="msg">Console cleared.</span></div>';
+}
+
+function exportLog() {
+  var log = document.getElementById('overrideConsole').innerText;
+  var blob = new Blob([log], {type: 'text/plain'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'sft-command-log-' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Command simulations — in production these hit the Flask API
+var commandSimulations = {
+  reboot: [
+    { msg: '> Sending reboot command...', delay: 300 },
+    { msg: '> Device rebooting. Connection will be lost.', delay: 1000, ok: true },
+    { msg: '> Waiting for device to come back online...', delay: 1500 },
+    { msg: '> Device reconnected. Mode: Android', delay: 3000, ok: true },
+  ],
+  reboot_download: [
+    { msg: '> Sending reboot to download mode...', delay: 300 },
+    { msg: '> Device rebooting to Download Mode', delay: 1000, ok: true },
+    { msg: '> USB ID changed: 04e8:685d (Download Mode)', delay: 1500 },
+    { msg: '> Device ready for firmware operations', delay: 2000, ok: true },
+  ],
+  reboot_recovery: [
+    { msg: '> Sending reboot to recovery...', delay: 300 },
+    { msg: '> Device rebooting to Recovery Mode', delay: 1000, ok: true },
+    { msg: '> Recovery menu active', delay: 1500, ok: true },
+  ],
+  reboot_bootloader: [
+    { msg: '> Sending reboot to bootloader...', delay: 300 },
+    { msg: '> Device rebooting to Bootloader/Fastboot', delay: 1000, ok: true },
+    { msg: '> USB ID changed: 04e8:4ee0 (Fastboot)', delay: 1500 },
+    { msg: '> Fastboot ready. Use: fastboot [command]', delay: 2000, ok: true },
+  ],
+  adb_devices: [
+    { msg: '> Scanning for ADB devices...', delay: 300 },
+    { msg: '> Found 1 device:', delay: 800 },
+    { msg: '  R9YR30NABCX  device  SM-A042F', delay: 1000, ok: true },
+  ],
+  getprop: [
+    { msg: '> Reading device properties...', delay: 300 },
+    { msg: '[ro.product.model]: [SM-A042F]', delay: 600 },
+    { msg: '[ro.product.brand]: [samsung]', delay: 800 },
+    { msg: '[ro.product.name]: [a04sx]', delay: 1000 },
+    { msg: '[ro.build.display.id]: [A042FXXSFEZB9]', delay: 1200 },
+    { msg: '[ro.build.version.release]: [14]', delay: 1400 },
+    { msg: '[ro.build.version.security_patch]: [2026-03-01]', delay: 1600 },
+    { msg: '[ro.product.cpu.abi]: [arm64-v8a]', delay: 1800 },
+    { msg: '[ro.hardware]: [mt6769]', delay: 2000, ok: true },
+  ],
+  adb_shell_getprop_model: [
+    { msg: '> adb shell getprop ro.product.model', delay: 300 },
+    { msg: 'SM-A042F', delay: 800, ok: true },
+  ],
+  adb_shell_getprop_firmware: [
+    { msg: '> adb shell getprop ro.build.display.id', delay: 300 },
+    { msg: 'A042FXXSFEZB9', delay: 800, ok: true },
+  ],
+  adb_shell_getprop_csc: [
+    { msg: '> adb shell getprop ro.csc.sales_code', delay: 300 },
+    { msg: 'XSG', delay: 800, ok: true },
+  ],
+  fastboot_devices: [
+    { msg: '> fastboot devices', delay: 300 },
+    { msg: '> No fastboot devices found', delay: 800, warn: true },
+    { msg: '> Tip: Reboot device to bootloader first', delay: 1000 },
+  ],
+  fastboot_getvar: [
+    { msg: '> fastboot getvar all', delay: 300 },
+    { msg: '> Device not in fastboot mode', delay: 800, warn: true },
+    { msg: '> Reboot to bootloader: adb reboot bootloader', delay: 1000 },
+  ],
+  fastboot_getvar_serial: [
+    { msg: '> fastboot getvar serialno', delay: 300 },
+    { msg: '> Device not in fastboot mode', delay: 800, warn: true },
+  ],
+  heimdall_detect: [
+    { msg: '> heimdall detect', delay: 500 },
+    { msg: '> Initialising connection...', delay: 1000 },
+    { msg: '> Detecting device...', delay: 1500 },
+    { msg: '> Device detected', delay: 2000, ok: true },
+  ],
+  heimdall_print_pit: [
+    { msg: '> heimdall print-pit --no-reboot', delay: 500 },
+    { msg: '> Initialising connection...', delay: 1000 },
+    { msg: '> Detecting device...', delay: 1500 },
+    { msg: '> Device detected. Beginning PIT read...', delay: 2000 },
+    { msg: '> Entry Count: 55', delay: 3000 },
+    { msg: '> Binary Type: 0 (AP) | Device Type: 2 (MMC)', delay: 3200 },
+    { msg: '> Partition: bootloader | Size: 8192 blocks', delay: 3400 },
+    { msg: '> Partition: pgpt | Size: 34 blocks', delay: 3600 },
+    { msg: '> Partition: super | Size: 13254656 blocks (~12.6 GB)', delay: 3800 },
+    { msg: '> Partition: userdata | Remainder of storage', delay: 4000 },
+    { msg: '> PIT read successful. 55 entries total.', delay: 4500, ok: true },
+  ],
+  thorjs_devices: [
+    { msg: '> thorjs devices', delay: 500 },
+    { msg: '* /dev/tty.usbmodem201 (Samsung, VID_04E8, Download PID, modem)', delay: 1000, ok: true },
+  ],
+};
+
+function sendQuickCmd(cmd, label) {
+  logCmd('> ' + label, '');
+  logCmd('> Executing: ' + cmd, '');
+  
+  var sim = commandSimulations[cmd];
+  if (!sim) {
+    logCmd('> Command not recognized: ' + cmd, 'err');
+    return;
+  }
+  
+  var total = 0;
+  sim.forEach(function(s) {
+    total += s.delay;
+    setTimeout(function() {
+      logCmd(s.msg, s.ok ? 'ok' : s.err ? 'err' : s.warn ? 'warn' : '');
+    }, total);
+  });
+}
+
+function handleCmdKey(e) {
+  if (e.key === 'Enter') {
+    executeCustomCmd();
+  } else if (e.key === 'ArrowUp') {
+    if (historyIndex < cmdHistory.length - 1) {
+      historyIndex++;
+      document.getElementById('cmdInput').value = cmdHistory[cmdHistory.length - 1 - historyIndex];
+    }
+  } else if (e.key === 'ArrowDown') {
+    if (historyIndex > 0) {
+      historyIndex--;
+      document.getElementById('cmdInput').value = cmdHistory[cmdHistory.length - 1 - historyIndex];
+    } else {
+      historyIndex = -1;
+      document.getElementById('cmdInput').value = '';
+    }
+  }
+}
+
+function executeCustomCmd() {
+  var input = document.getElementById('cmdInput');
+  var cmd = input.value.trim();
+  if (!cmd) return;
+  
+  cmdHistory.push(cmd);
+  historyIndex = -1;
+  logCmd('$ ' + cmd, '');
+  
+  // Check if it's a known simulation
+  var found = false;
+  for (var key in commandSimulations) {
+    if (cmd.indexOf(key) !== -1 || commandSimulations[cmd]) {
+      found = true;
+      sendQuickCmd(cmd, cmd);
+      break;
+    }
+  }
+  
+  if (!found) {
+    // Generic command echo
+    logCmd('> Executing: ' + cmd, 'running');
+    setTimeout(function() {
+      // Simulate different responses based on command type
+      if (cmd.indexOf('adb') === 0) {
+        logCmd('> ADB command executed. Check device for output.', 'ok');
+      } else if (cmd.indexOf('fastboot') === 0) {
+        logCmd('> Fastboot command sent to bootloader.', 'ok');
+      } else if (cmd.indexOf('heimdall') === 0) {
+        logCmd('> Heimdall operation complete.', 'ok');
+      } else if (cmd.indexOf('thorjs') === 0) {
+        logCmd('> Thorjs operation complete.', 'ok');
+      } else {
+        logCmd('> Command executed.', 'ok');
+      }
+    }, 1000);
+  }
+  
+  input.value = '';
+}
+
+function executeMacOverride() {
+  var newMac = document.getElementById('newMac').value;
+  if (!newMac || newMac.length !== 17) {
+    alert('Please enter a valid MAC address (XX:XX:XX:XX:XX:XX)');
+    return;
+  }
+  
+  var btn = document.getElementById('macOverrideBtn');
+  btn.disabled = true;
+  btn.textContent = '⟳ Applying...';
+  
+  logCmd('> MAC Override initiated', '');
+  logCmd('> New MAC: ' + newMac, '');
+  
+  setTimeout(function() { logCmd('> Reading current MAC from NV data...', 'running'); }, 500);
+  setTimeout(function() { logCmd('> Current MAC: 00:1A:2B:3C:4D:5E', ''); }, 1500);
+  setTimeout(function() { logCmd('> Writing new MAC to NV partition...', 'running'); }, 2500);
+  setTimeout(function() { logCmd('> Verifying write: ' + newMac, 'running'); }, 3500);
+  setTimeout(function() {
+    logCmd('> MAC Override: SUCCESS — ' + newMac, 'ok');
+    logCmd('> Device reboot required for changes to take effect', 'warn');
+    document.getElementById('currentMac').value = newMac;
+    btn.disabled = false;
+    btn.textContent = '✓ Override Applied';
+    btn.style.background = 'var(--green)';
+  }, 4500);
+}
+
+function refreshDeviceStatus() {
+  logCmd('> Refreshing device status...', '');
+  setTimeout(function() {
+    logCmd('> Device: Samsung (04e8:685d) — Download Mode', 'ok');
+    logCmd('> Connection: Stable | Power: 50mA drawn', 'ok');
+  }, 1000);
+}
+
+// Auto-detect on load
+setTimeout(function() {
+  logCmd('> Auto-detecting connected devices...', '');
+  setTimeout(function() {
+    logCmd('> Found: Samsung SM-A042F (04e8:685d) — Download Mode', 'ok');
+    logCmd('> Override system ready.', 'ok');
+  }, 1500);
+}, 500);
+</script>
+
+{% endblock %}

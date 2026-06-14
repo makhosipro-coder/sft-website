@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Supported Models — SFT{% endblock %}
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Compatibility</span>
+    <h1>Supported Models</h1>
+    <p>Full and partial support across the Samsung Galaxy lineup. Every model is validated for USB detection, firmware reading, and safe flashing.</p>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="container">
+    <div class="filter-inner">
+      <span class="filter-label">FILTER:</span>
+      <button class="filter-btn active" onclick="filterModels('all', this)">All</button>
+      <button class="filter-btn" onclick="filterModels('s', this)">S Series</button>
+      <button class="filter-btn" onclick="filterModels('a', this)">A Series</button>
+      <button class="filter-btn" onclick="filterModels('z', this)">Z Series</button>
+      <button class="filter-btn" onclick="filterModels('note', this)">Note</button>
+      <button class="filter-btn" onclick="filterModels('m', this)">M Series</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODELS GRID -->
+<section class="section models-section">
+  <div class="container">
+    <div class="models-grid" id="modelsGrid">
+      <div class="model-card" data-series="s">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy S24 Ultra</div>
+          <span class="model-badge">S Series</span>
+        </div>
+        <div class="model-details"><span>SM-S928B</span><span>One UI 6.1 / Android 14</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="s">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy S24+</div>
+          <span class="model-badge">S Series</span>
+        </div>
+        <div class="model-details"><span>SM-S926B</span><span>One UI 6.1 / Android 14</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="s">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy S24</div>
+          <span class="model-badge">S Series</span>
+        </div>
+        <div class="model-details"><span>SM-S921B</span><span>One UI 6.1 / Android 14</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="s">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy S23 Ultra</div>
+          <span class="model-badge">S Series</span>
+        </div>
+        <div class="model-details"><span>SM-S918B</span><span>One UI 6.1 / Android 14</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="s">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy S23 FE</div>
+          <span class="model-badge">S Series</span>
+        </div>
+        <div class="model-details"><span>SM-S911B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="s">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy S22 Ultra</div>
+          <span class="model-badge">S Series</span>
+        </div>
+        <div class="model-details"><span>SM-S908B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="z">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy Z Fold 5</div>
+          <span class="model-badge">Z Series</span>
+        </div>
+        <div class="model-details"><span>SM-F946B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="z">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy Z Flip 5</div>
+          <span class="model-badge">Z Series</span>
+        </div>
+        <div class="model-details"><span>SM-F731B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="z">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy Z Fold 4</div>
+          <span class="model-badge">Z Series</span>
+        </div>
+        <div class="model-details"><span>SM-F936B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="note">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy Note 20 Ultra</div>
+          <span class="model-badge">Note Series</span>
+        </div>
+        <div class="model-details"><span>SM-N986B</span><span>One UI 2.5 / Android 10</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="a">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy A55 5G</div>
+          <span class="model-badge">A Series</span>
+        </div>
+        <div class="model-details"><span>SM-A556B</span><span>One UI 6.1 / Android 14</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="a">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy A54 5G</div>
+          <span class="model-badge">A Series</span>
+        </div>
+        <div class="model-details"><span>SM-A546B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="a">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy A35 5G</div>
+          <span class="model-badge">A Series</span>
+        </div>
+        <div class="model-details"><span>SM-A356B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="a">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy A34</div>
+          <span class="model-badge">A Series</span>
+        </div>
+        <div class="model-details"><span>SM-A346B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="a">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy A15 5G</div>
+          <span class="model-badge">A Series</span>
+        </div>
+        <div class="model-details"><span>SM-A156B</span><span>One UI 6.1 / Android 14</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Full Support</div>
+      </div>
+      <div class="model-card" data-series="a">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy A04e</div>
+          <span class="model-badge">A Series</span>
+        </div>
+        <div class="model-details"><span>SM-A042F</span><span>One UI 6.1 / Android 14</span></div>
+        <div class="model-tag partial"><span class="tag-dot"></span>Partial Support</div>
+      </div>
+      <div class="model-card" data-series="m">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy M54 5G</div>
+          <span class="model-badge">M Series</span>
+        </div>
+        <div class="model-details"><span>SM-M546B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag partial"><span class="tag-dot"></span>Partial Support</div>
+      </div>
+      <div class="model-card" data-series="m">
+        <div class="model-card-header">
+          <div class="model-name">Samsung Galaxy F54 5G</div>
+          <span class="model-badge">F Series</span>
+        </div>
+        <div class="model-details"><span>SM-E546B</span><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag partial"><span class="tag-dot"></span>Partial Support</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.page-hero{background:var(--navy);color:var(--white);padding:3rem 0 2.5rem;text-align:center}
+.page-hero h1{font-size:clamp(1.5rem,3vw,2rem);font-weight:800;letter-spacing:-.02em;margin-bottom:.5rem}
+.page-hero p{color:var(--gray-400);max-width:500px;margin:0 auto;font-size:.9rem}
+.filter-bar{background:var(--gray-100);border-bottom:1px solid var(--gray-200);padding:.75rem 0}
+.filter-inner{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.filter-label{font-family:var(--font-mono);font-size:.65rem;font-weight:600;color:var(--gray-500);letter-spacing:.06em;text-transform:uppercase;margin-right:.5rem}
+.filter-btn{background:var(--white);border:1px solid var(--gray-200);padding:.35rem .85rem;font-size:.72rem;font-weight:500;color:var(--gray-600);cursor:pointer;transition:var(--transition);border-radius:var(--radius-sm)}
+.filter-btn:hover{border-color:var(--blue);color:var(--blue)}
+.filter-btn.active{background:var(--blue);color:var(--white);border-color:var(--blue)}
+.model-card{display:none}
+.model-card.visible{display:block}
+.model-tag.partial{color:var(--amber)}
+</style>
+
+<script>
+function filterModels(series, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.model-card').forEach(card => {
+    if (series === 'all' || card.dataset.series === series) {
+      card.classList.add('visible');
+    } else {
+      card.classList.remove('visible');
+    }
+  });
+}
+// Show all by default
+document.querySelectorAll('.model-card').forEach(c => c.classList.add('visible'));
+</script>
+
+{% endblock %}

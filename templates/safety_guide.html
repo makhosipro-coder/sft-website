@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Safety Guide — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Documentation</span>
+    <h1>Safety Guide</h1>
+    <p>Read this before performing any firmware operation. Irreversible actions can brick your device if performed incorrectly.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="doc-grid">
+      <!-- Pre-Operation Checklist -->
+      <div class="doc-section">
+        <div class="doc-header">
+          <span class="doc-icon">&#9989;</span>
+          <h3>Pre-Operation Checklist</h3>
+        </div>
+        <div class="doc-content">
+          <div class="checklist-item">
+            <input type="checkbox" id="c1">
+            <label for="c1">Device battery is at least <strong>50%</strong> (80% recommended)</label>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" id="c2">
+            <label for="c2">All user data has been <strong>backed up</strong> to external storage or cloud</label>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" id="c3">
+            <label for="c2">Correct firmware files for your <strong>exact model number</strong> have been obtained</label>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" id="c4">
+            <label for="c4">USB cable is <strong>data-capable</strong> (not charge-only)</label>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" id="c5">
+            <label for="c5">Samsung USB drivers are installed (Windows) or udev rules configured (Linux)</label>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" id="c6">
+            <label for="c6">Device is in the correct <strong>connection mode</strong> (Download/ADB/Fastboot)</label>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" id="c7">
+            <label for="c7">No other device management software is running (Kies, Smart Switch, etc.)</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rollback Prevention -->
+      <div class="doc-section warning">
+        <div class="doc-header">
+          <span class="doc-icon">&#9888;</span>
+          <h3>Rollback Prevention</h3>
+        </div>
+        <div class="doc-content">
+          <p>The tool enforces <strong>strict rollback prevention</strong>. You cannot flash firmware with a lower bootloader (binary) version than what is currently installed.</p>
+          <div class="info-box">
+            <strong>Why this matters:</strong> Samsung devices have a one-way bootloader. Once upgraded, the bootloader cannot be downgraded. Attempting to flash older firmware will hard-brick the device.
+          </div>
+          <p>The tool parses the firmware string character at position 9 (e.g., <code>S928BXXS<strong>4</strong>AYA1</code> = bootloader v4) and blocks any operation where the target BL version &lt; current BL version.</p>
+        </div>
+      </div>
+
+      <!-- Data Loss Warnings -->
+      <div class="doc-section danger">
+        <div class="doc-header">
+          <span class="doc-icon">&#9888;</span>
+          <h3>Data Loss Warnings</h3>
+        </div>
+        <div class="doc-content">
+          <table class="safety-table">
+            <thead>
+              <tr><th>Operation</th><th>Data Impact</th><th>Reversible</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>HOME_CSC Flash</td><td>Presesrves user data</td><td>Yes (re-flash)</td></tr>
+              <tr><td>CSC Flash</td><td><strong>ERASES ALL DATA</strong></td><td>No</td></tr>
+              <tr><td>Factory Reset</td><td><strong>ERASES ALL DATA</strong></td><td>No</td></tr>
+              <tr><td>MAC Override</td><td>No data loss</td><td>Yes (re-flash)</td></tr>
+              <tr><td>Full Firmware Flash</td><td><strong>ERASES ALL DATA</strong></td><td>No</td></tr>
+              <tr><td>Partition Repair</td><td>May erase affected partitions</td><td>No</td></tr>
+              <tr><td>PIT Repartition</td><td><strong>ERASES ALL DATA</strong></td><td>No</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Emergency Recovery -->
+      <div class="doc-section">
+        <div class="doc-header">
+          <span class="doc-icon">&#128267;</span>
+          <h3>Emergency Recovery</h3>
+        </div>
+        <div class="doc-content">
+          <p>If your device fails to boot after an operation:</p>
+          <ol class="steps-list">
+            <li><strong>Force restart:</strong> Hold Power + Volume Down for 15+ seconds</li>
+            <li><strong>Enter Download Mode:</strong> Power off → Hold Vol Down + Power → Vol Up to confirm</li>
+            <li><strong>Flash stock firmware:</strong> Use CSC (not HOME_CSC) for clean install</li>
+            <li><strong>Try different USB port/cable:</strong> Some ports don't provide stable data</li>
+            <li><strong>Check PIT:</strong> If partitions are corrupted, use PIT repartition with full firmware</li>
+          </ol>
+          <div class="info-box blue">
+            <strong>Note:</strong> Even a hard-bricked device can usually be recovered by flashing the correct stock firmware in Download Mode. The bootloader is stored in a protected partition and survives most flash failures.
+          </div>
+        </div>
+      </div>
+
+      <!-- Known Limitations -->
+      <div class="doc-section warning">
+        <div class="doc-header">
+          <span class="doc-icon">&#9888;</span>
+          <h3>Known Limitations</h3>
+        </div>
+        <div class="doc-content">
+          <table class="safety-table">
+            <thead>
+              <tr><th>Platform</th><th>Limitation</th><th>Workaround</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>macOS</td><td>CDC-ACM driver broken for 2020+ Download Mode</td><td>Use Windows VM with USB passthrough</td></tr>
+              <tr><td>macOS</td><td>Heimdall can read PIT but not flash 2020+</td><td>thorjs (pre-2020 only) or Odin on Windows</td></tr>
+              <tr><td>Linux</td><td>Requires manual udev rules for Samsung devices</td><td>Tool auto-generates rules on first run</td></tr>
+              <tr><td>All</td><td>samloader broken (auth bug, June 2026)</td><td>Manual download from Samfw.com on browser</td></tr>
+              <tr><td>MediaTek</td><td>PIT format differs from Exynos</td><td>Tool auto-detects chipset from PIT</td></tr>
+              <tr><td>Encrypted devices</td><td>Cannot read encrypted partitions</td><td>Factory reset required first</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.doc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem}
+.doc-section{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);overflow:hidden}
+.doc-section.warning{border-color:var(--amber-border);background:var(--amber-bg)}
+.doc-section.danger{border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.03)}
+.doc-header{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;background:var(--gray-50);border-bottom:1px solid var(--gray-200)}
+.doc-header h3{font-size:.9rem;font-weight:700;color:var(--navy)}
+.doc-icon{font-size:1rem}
+.doc-content{padding:1.25rem}
+.doc-content p{font-size:.82rem;color:var(--gray-600);line-height:1.6;margin-bottom:.75rem}
+.doc-content p:last-child{margin-bottom:0}
+.checklist-item{display:flex;align-items:flex-start;gap:.75rem;padding:.4rem 0;border-bottom:1px solid var(--gray-100)}
+.checklist-item:last-child{border-bottom:none}
+.checklist-item input{width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;margin-top:.15rem}
+.checklist-item label{font-size:.82rem;color:var(--gray-700);cursor:pointer}
+.info-box{padding:.75rem;border-radius:var(--radius-sm);font-size:.78rem;line-height:1.5;margin-top:.75rem}
+.info-box:not(.blue){background:var(--amber-bg);border:1px solid var(--amber-border);color:#92400e}
+.info-box.blue{background:var(--blue-light);border:1px solid rgba(20,40,160,.15);color:var(--blue)}
+.safety-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.safety-table th{background:var(--gray-50);padding:.5rem .75rem;text-align:left;font-family:var(--font-mono);font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);border-bottom:1px solid var(--gray-200)}
+.safety-table td{padding:.5rem .75rem;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
+.safety-table tr:last-child td{border-bottom:none}
+.steps-list{padding-left:1.25rem;margin:0}
+.steps-list li{font-size:.82rem;color:var(--gray-600);padding:.25rem 0;line-height:1.6}
+code{font-family:var(--font-mono);font-size:.75rem;background:var(--gray-100);padding:.1rem .35rem;border-radius:2px;color:var(--gray-700)}
+@media(max-width:768px){.doc-grid{grid-template-columns:1fr}}
+</style>
+
+{% endblock %}

@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+{% block title %}Reset Wizard — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Workflow</span>
+    <h1>Reset Wizard</h1>
+    <p>Step-by-step guided firmware reset. Every action is validated before execution. No guesswork, no bricking.</p>
+  </div>
+</div>
+
+<!-- WIZARD -->
+<section class="section wizard-section">
+  <div class="container">
+    <div class="wizard-grid">
+      <!-- Sidebar: Steps -->
+      <div class="wizard-sidebar">
+        <div class="wizard-steps">
+          <div class="wizard-step active" id="wstep1" onclick="goToStep(1)">
+            <div class="wstep-num">01</div>
+            <div class="wstep-info">
+              <div class="wstep-title">Connect Device</div>
+              <div class="wstep-desc">USB detection & identification</div>
+            </div>
+          </div>
+          <div class="wizard-step" id="wstep2" onclick="goToStep(2)">
+            <div class="wstep-num">02</div>
+            <div class="wstep-info">
+              <div class="wstep-title">Select Operation</div>
+              <div class="wstep-desc">Choose reset type & target</div>
+            </div>
+          </div>
+          <div class="wizard-step" id="wstep3" onclick="goToStep(3)">
+            <div class="wstep-num">03</div>
+            <div class="wstep-info">
+              <div class="wstep-title">Validate</div>
+              <div class="wstep-desc">Firmware & compatibility check</div>
+            </div>
+          </div>
+          <div class="wizard-step" id="wstep4" onclick="goToStep(4)">
+            <div class="wstep-num">04</div>
+            <div class="wstep-info">
+              <div class="wstep-title">Execute</div>
+              <div class="wstep-desc">Flash, reset, or override</div>
+            </div>
+          </div>
+          <div class="wizard-step" id="wstep5" onclick="goToStep(5)">
+            <div class="wstep-num">05</div>
+            <div class="wstep-info">
+              <div class="wstep-title">Verify</div>
+              <div class="wstep-desc">Post-operation validation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main: Step Content -->
+      <div class="wizard-main">
+        <!-- Step 1 -->
+        <div class="wizard-content active" id="wc1">
+          <h3>Connect Your Device</h3>
+          <p class="wizard-desc">Connect your Samsung device via USB. The tool will auto-detect the model, firmware version, and connection mode.</p>
+          <div class="form-group">
+            <label>Connection Mode</label>
+            <select id="connMode" onchange="updateMode(this.value)">
+              <option value="">Select mode...</option>
+              <option value="download">Download Mode (Odin)</option>
+              <option value="adb">Android / ADB</option>
+              <option value="fastboot">Fastboot</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>USB Port</label>
+            <input type="text" id="usbPort" placeholder="Auto-detected" readonly>
+          </div>
+          <div class="console-card" style="margin-top:1rem">
+            <div class="console-header">
+              <span class="title">USB Detection Log</span>
+              <button class="scan-btn" onclick="runDetection()">⟳ SCAN</button>
+            </div>
+            <div class="console-body" id="detectLog">
+              <div class="console-line"><span class="time">[--:--:--]</span><span class="msg">Ready. Connect a device and click SCAN.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="wizard-content" id="wc2">
+          <h3>Select Operation</h3>
+          <p class="wizard-desc">Choose the type of reset or flash operation you want to perform.</p>
+          <div class="operation-cards">
+            <div class="op-card" onclick="selectOp('mac', this)">
+              <div class="op-icon">&#128273;</div>
+              <div class="op-title">MAC Address Override</div>
+              <div class="op-desc">Reset hardware MAC to factory default or apply a custom override. Reversible.</div>
+            </div>
+            <div class="op-card" onclick="selectOp('factory', this)">
+              <div class="op-icon">&#128260;</div>
+              <div class="op-title">Factory Reset via USB</div>
+              <div class="op-desc">Full wipe and reinstall of stock firmware. Erases all user data. Irreversible.</div>
+            </div>
+            <div class="op-card" onclick="selectOp('flash', this)">
+              <div class="op-icon">&#128228;</div>
+              <div class="op-title">Full Firmware Flash</div>
+              <div class="op-desc">Flash a complete firmware package. Supports all CSC regions. Irreversible.</div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:1.5rem">
+            <label>CSC / Region Code</label>
+            <select id="cscSelect">
+              <option value="">Select CSC...</option>
+              <option value="OXM">OXM — Europe Multi</option>
+              <option value="XAA">XAA — USA Unlocked</option>
+              <option value="INS">INS — India</option>
+              <option value="KOO">KOO — Korea</option>
+              <option value="BTU">BTU — UK Unlocked</option>
+              <option value="DBT">DBT — Germany</option>
+              <option value="XEF">XEF — France</option>
+              <option value="THL">THL — Thailand</option>
+              <option value="XSG">XSG — UAE</option>
+              <option value="XFA">XFA — South Africa (Unlocked)</option>
+              <option value="XFC">XFC — South Africa (Vodacom)</option>
+              <option value="XFD">XFD — South Africa (MTN)</option>
+              <option value="XFE">XFE — South Africa (Cell C)</option>
+              <option value="XFF">XFF — South Africa (Telkom)</option>
+              <option value="XFG">XFG — South Africa (Rain)</option>
+              <option value="AFR">AFR — Kenya</option>
+              <option value="ECT">ECT — Nigeria</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="wizard-content" id="wc3">
+          <h3>Validate Compatibility</h3>
+          <p class="wizard-desc">The tool checks firmware compatibility, bootloader version, and rollback prevention before allowing the operation.</p>
+          <div class="validation-grid">
+            <div class="val-item">
+              <div class="val-label">Device Model</div>
+              <div class="val-value" id="valModel">—</div>
+            </div>
+            <div class="val-item">
+              <div class="val-label">Current Firmware</div>
+              <div class="val-value" id="valCurrent">—</div>
+            </div>
+            <div class="val-item">
+              <div class="val-label">Bootloader Version</div>
+              <div class="val-value" id="valBL">—</div>
+            </div>
+            <div class="val-item">
+              <div class="val-label">Selected Operation</div>
+              <div class="val-value" id="valOp">—</div>
+            </div>
+            <div class="val-item">
+              <div class="val-label">CSC Region</div>
+              <div class="val-value" id="valCsc">—</div>
+            </div>
+            <div class="val-item">
+              <div class="val-label">Rollback Check</div>
+              <div class="val-value" id="valRollback" style="color:var(--amber)">Pending</div>
+            </div>
+          </div>
+          <div class="warning-box" id="rollbackWarning" style="display:none;margin-top:1rem">
+            <span class="warn-icon">&#9888;</span>
+            <p><strong>Rollback Prevention:</strong> Target firmware has a lower bootloader version. This operation is blocked to prevent bricking.</p>
+          </div>
+          <div class="warning-box" id="dataLossWarning" style="display:none;margin-top:1rem;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2)">
+            <span class="warn-icon">&#9888;</span>
+            <p style="color:var(--red)"><strong>DATA LOSS:</strong> This operation will erase all user data. Ensure you have a backup.</p>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="wizard-content" id="wc4">
+          <h3>Execute Operation</h3>
+          <p class="wizard-desc">Review the summary below and confirm to begin. This action cannot be undone.</p>
+          <div class="exec-summary">
+            <div class="exec-row"><span class="exec-label">Operation</span><span class="exec-value" id="execOp">—</span></div>
+            <div class="exec-row"><span class="exec-label">Target Device</span><span class="exec-value" id="execDevice">—</span></div>
+            <div class="exec-row"><span class="exec-label">CSC</span><span class="exec-value" id="execCsc">—</span></div>
+            <div class="exec-row"><span class="exec-label">Estimated Time</span><span class="exec-value">3–8 minutes</span></div>
+          </div>
+          <label class="confirm-label" style="margin-top:1.5rem">
+            <input type="checkbox" id="execConfirm">
+            <span>I understand this operation is irreversible and want to proceed.</span>
+          </label>
+          <div style="margin-top:1.5rem">
+            <button class="btn btn-primary" id="execBtn" disabled onclick="executeOperation()">&#9889; Begin Operation</button>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="wizard-content" id="wc5">
+          <h3>Verification</h3>
+          <p class="wizard-desc">Post-operation validation results.</p>
+          <div class="verify-results" id="verifyResults">
+            <div class="verify-item pending">
+              <div class="v-icon">&#9723;</div>
+              <div class="v-text">
+                <div class="v-title">Firmware Integrity</div>
+                <div class="v-desc">Waiting for operation to complete...</div>
+              </div>
+            </div>
+            <div class="verify-item pending">
+              <div class="v-icon">&#9723;</div>
+              <div class="v-text">
+                <div class="v-title">Partition Table</div>
+                <div class="v-desc">Waiting for operation to complete...</div>
+              </div>
+            </div>
+            <div class="verify-item pending">
+              <div class="v-icon">&#9723;</div>
+              <div class="v-text">
+                <div class="v-title">CSC Alignment</div>
+                <div class="v-desc">Waiting for operation to complete...</div>
+              </div>
+            </div>
+            <div class="verify-item pending">
+              <div class="v-icon">&#9723;</div>
+              <div class="v-text">
+                <div class="v-title">Device Reboot</div>
+                <div class="v-desc">Waiting for operation to complete...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="wizard-nav">
+          <button class="btn btn-outline" id="wizardPrev" onclick="prevWizardStep()" style="visibility:hidden">← Previous</button>
+          <button class="btn btn-primary" id="wizardNext" onclick="nextWizardStep()">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.wizard-section{padding-top:2rem}
+.wizard-grid{display:grid;grid-template-columns:280px 1fr;gap:2rem;align-items:start}
+.wizard-sidebar{position:sticky;top:72px}
+.wizard-steps{display:flex;flex-direction:column;gap:0}
+.wizard-step{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;cursor:pointer;transition:var(--transition);border-left:3px solid transparent}
+.wizard-step:hover{background:var(--gray-100)}
+.wizard-step.active{background:var(--blue-light);border-left-color:var(--blue)}
+.wstep-num{font-family:var(--font-mono);font-size:.7rem;font-weight:700;color:var(--gray-400);width:24px;flex-shrink:0}
+.wizard-step.active .wstep-num{color:var(--blue)}
+.wstep-title{font-size:.8rem;font-weight:600;color:var(--gray-700)}
+.wstep-desc{font-size:.68rem;color:var(--gray-400)}
+.wizard-main{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:2rem;min-height:480px}
+.wizard-content{display:none}
+.wizard-content.active{display:block}
+.wizard-content h3{font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:.5rem}
+.wizard-desc{font-size:.85rem;color:var(--gray-500);margin-bottom:1.5rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.35rem;font-family:var(--font-mono)}
+.form-group input,.form-group select{width:100%;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:.65rem .85rem;color:var(--gray-800);font-family:var(--font-mono);font-size:.82rem;transition:var(--transition)}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--blue)}
+.form-group select option{background:var(--white)}
+.scan-btn{background:none;border:1px solid rgba(74,144,217,.3);color:var(--blue);padding:.3rem .7rem;border-radius:var(--radius-sm);font-size:.7rem;cursor:pointer;font-family:var(--font-mono)}
+.scan-btn:hover{background:var(--blue-light)}
+.operation-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.op-card{border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:1.25rem;cursor:pointer;transition:var(--transition)}
+.op-card:hover{border-color:var(--blue);box-shadow:var(--shadow)}
+.op-card.selected{border-color:var(--blue);background:var(--blue-light)}
+.op-icon{font-size:1.3rem;margin-bottom:.5rem}
+.op-title{font-size:.82rem;font-weight:700;color:var(--navy);margin-bottom:.25rem}
+.op-desc{font-size:.72rem;color:var(--gray-500);line-height:1.5}
+.validation-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.val-item{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:.75rem}
+.val-label{font-family:var(--font-mono);font-size:.6rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem}
+.val-value{font-family:var(--font-mono);font-size:.82rem;font-weight:600;color:var(--gray-700)}
+.exec-summary{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:1.25rem}
+.exec-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--gray-200)}
+.exec-row:last-child{border-bottom:none}
+.exec-label{font-size:.75rem;color:var(--gray-500)}
+.exec-value{font-family:var(--font-mono);font-size:.8rem;font-weight:600;color:var(--gray-700)}
+.confirm-label{display:flex;align-items:center;gap:.75rem;cursor:pointer}
+.confirm-label input{width:16px;height:16px;accent-color:var(--blue)}
+.confirm-label span{font-size:.82rem;color:var(--gray-600)}
+.verify-results{display:flex;flex-direction:column;gap:.5rem}
+.verify-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm)}
+.verify-item.pending{opacity:.5}
+.verify-item.success{background:var(--green-bg);border-color:var(--green-border)}
+.verify-item.success .v-icon{color:var(--green)}
+.v-icon{font-size:.8rem;color:var(--gray-400)}
+.v-title{font-size:.8rem;font-weight:600;color:var(--gray-700)}
+.v-desc{font-size:.7rem;color:var(--gray-400)}
+.wizard-nav{display:flex;justify-content:space-between;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--gray-200)}
+@media(max-width:900px){
+  .wizard-grid{grid-template-columns:1fr}
+  .wizard-sidebar{position:static}
+  .wizard-steps{flex-direction:row;overflow-x:auto}
+  .wizard-step{border-left:none;border-bottom:3px solid transparent;flex-shrink:0}
+  .wizard-step.active{border-left:none;border-bottom-color:var(--blue)}
+  .operation-cards{grid-template-columns:1fr}
+  .validation-grid{grid-template-columns:1fr}
+}
+</style>
+
+<script>
+var currentWizStep = 1;
+var selectedOp = null;
+
+function goToStep(n) {
+  currentWizStep = n;
+  updateWizardUI();
+}
+
+function nextWizardStep() {
+  if (currentWizStep < 5) {
+    currentWizStep++;
+    updateWizardUI();
+  }
+}
+
+function prevWizardStep() {
+  if (currentWizStep > 1) {
+    currentWizStep--;
+    updateWizardUI();
+  }
+}
+
+function updateWizardUI() {
+  for (var i = 1; i <= 5; i++) {
+    var s = document.getElementById('wstep' + i);
+    var c = document.getElementById('wc' + i);
+    if (s) s.classList.toggle('active', i === currentWizStep);
+    if (c) c.classList.toggle('active', i === currentWizStep);
+  }
+  document.getElementById('wizardPrev').style.visibility = currentWizStep > 1 ? 'visible' : 'hidden';
+  var nextBtn = document.getElementById('wizardNext');
+  nextBtn.textContent = currentWizStep === 4 ? 'Finish' : 'Next →';
+  nextBtn.style.visibility = currentWizStep === 4 ? 'hidden' : 'visible';
+}
+
+function updateMode(val) {
+  var port = document.getElementById('usbPort');
+  if (val === 'download') port.value = '/dev/ttyUSB0 (Download)';
+  else if (val === 'adb') port.value = '/dev/ttyUSB1 (ADB)';
+  else if (val === 'fastboot') port.value = '/dev/ttyUSB2 (Fastboot)';
+}
+
+function runDetection() {
+  var log = document.getElementById('detectLog');
+  log.innerHTML = '';
+  var steps = [
+    { msg: '> Scanning USB ports...', delay: 400 },
+    { msg: '> Checking /dev/ttyUSB0...', delay: 800 },
+    { msg: '> Found: Samsung device (04e8:685d)', delay: 1200, ok: true },
+    { msg: '> Reading device info...', delay: 1600 },
+    { msg: '> Model: SM-S918B (Galaxy S23 Ultra)', delay: 2000, ok: true },
+    { msg: '> Firmware: G998BXXU5CVJA', delay: 2200 },
+    { msg: '> Status: READY', delay: 2500, ok: true },
+  ];
+  var total = 0;
+  steps.forEach(function(s) {
+    total += s.delay;
+    setTimeout(function() {
+      var cls = s.ok ? 'msg ok' : 'msg';
+      log.innerHTML += '<div class="console-line"><span class="time">[' + new Date().toLocaleTimeString('en-US', {hour12:false}) + ']</span><span class="' + cls + '">' + s.msg + '</span></div>';
+      log.scrollTop = log.scrollHeight;
+    }, total);
+  });
+}
+
+function selectOp(op, el) {
+  document.querySelectorAll('.op-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedOp = op;
+  var names = { mac: 'MAC Address Override', factory: 'Factory Reset via USB', flash: 'Full Firmware Flash' };
+  document.getElementById('valOp').textContent = names[op];
+  document.getElementById('execOp').textContent = names[op];
+  if (op === 'factory' || op === 'flash') {
+    document.getElementById('dataLossWarning').style.display = 'flex';
+  } else {
+    document.getElementById('dataLossWarning').style.display = 'none';
+  }
+}
+
+document.getElementById('execConfirm').addEventListener('change', function() {
+  document.getElementById('execBtn').disabled = !this.checked;
+});
+
+function executeOperation() {
+  var btn = document.getElementById('execBtn');
+  btn.disabled = true;
+  btn.textContent = '⟳ Executing...';
+  goToStep(5);
+  // Simulate execution
+  var checks = document.querySelectorAll('.verify-item');
+  checks.forEach(function(item, i) {
+    setTimeout(function() {
+      item.classList.remove('pending');
+      item.classList.add('success');
+      item.querySelector('.v-icon').textContent = '✓';
+      item.querySelector('.v-desc').textContent = 'Passed';
+    }, (i + 1) * 1500);
+  });
+}
+</script>
+
+{% endblock %}

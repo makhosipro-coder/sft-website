@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}Device Status — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Live Detection</span>
+    <h1>Device Status</h1>
+    <p>Real-time device detection and identification. Auto-refreshes every 5 seconds.</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-bar-inner">
+    <div class="status-item">
+      <span class="status-dot active" id="liveDot"></span>
+      <span id="liveStatus">Scanning...</span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Mode: <span class="value" id="liveMode">—</span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Method: <span class="value" id="liveMethod">—</span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Last update: <span class="value" id="liveTime">—</span></span>
+    </div>
+    <button class="scan-btn" onclick="refreshDeviceStatus()" style="margin-left:auto">⟳ REFRESH</button>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="grid-2">
+      <!-- Device Info Card -->
+      <div class="card">
+        <div class="card-header"><h3>DEVICE INFORMATION</h3></div>
+        <div class="card-body">
+          <table class="data-table">
+            <tbody>
+              <tr><td style="width:140px;color:var(--gray-500)">Model</td><td id="devModel"><span class="text-dim">Waiting...</span></td></tr>
+              <tr><td>Model Name</td><td id="devModelName"><span class="text-dim">—</span></td></tr>
+              <tr><td>Serial Number</td><td id="devSerial"><span class="text-dim">—</span></td></tr>
+              <tr><td>Firmware</td><td id="devFirmware"><span class="text-dim">—</span></td></tr>
+              <tr><td>CSC Code</td><td id="devCsc"><span class="text-dim">—</span></td></tr>
+              <tr><td>Chipset</td><td id="devChipset"><span class="text-dim">—</span></td></tr>
+              <tr><td>Android</td><td id="devAndroid"><span class="text-dim">—</span></td></tr>
+              <tr><td>Bootloader</td><td id="devBootloader"><span class="text-dim">—</span></td></tr>
+              <tr><td>Binary Ver</td><td id="devBinary"><span class="text-dim">—</span></td></tr>
+              <tr><td>Security Patch</td><td id="devPatch"><span class="text-dim">—</span></td></tr>
+              <tr><td>Battery</td><td id="devBattery"><span class="text-dim">—</span></td></tr>
+              <tr><td>Carrier</td><td id="devCarrier"><span class="text-dim">—</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Connection Info Card -->
+      <div class="card">
+        <div class="card-header"><h3>CONNECTION</h3></div>
+        <div class="card-body">
+          <table class="data-table">
+            <tbody>
+              <tr><td style="width:140px;color:var(--gray-500)">Status</td><td id="devStatus"><span class="status-chip amber">Scanning</span></td></tr>
+              <tr><td>Mode</td><td id="devMode"><span class="text-dim">—</span></td></tr>
+              <tr><td>USB VID</td><td id="devVid"><span class="text-dim">—</span></td></tr>
+              <tr><td>USB PID</td><td id="devPid"><span class="text-dim">—</span></td></tr>
+              <tr><td>USB Location</td><td id="devLocation"><span class="text-dim">—</span></td></tr>
+              <tr><td>Detection Method</td><td id="devDetectMethod"><span class="text-dim">—</span></td></tr>
+            </tbody>
+          </table>
+
+          <div id="flashReadiness" class="alert alert-info mt-2">
+            Connect a Samsung device to begin detection.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detection Methods Status -->
+    <div class="card mt-2">
+      <div class="card-header"><h3>DETECTION METHODS</h3></div>
+      <div class="card-body">
+        <div class="grid-4">
+          <div style="padding:.75rem;background:var(--gray-50);border-radius:var(--radius-sm);text-align:center">
+            <div style="font-size:1.2rem;margin-bottom:.3rem" id="methodAdb">○</div>
+            <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em">ADB</div>
+            <div class="text-xs text-dim" id="methodAdbStatus">Not detected</div>
+          </div>
+          <div style="padding:.75rem;background:var(--gray-50);border-radius:var(--radius-sm);text-align:center">
+            <div style="font-size:1.2rem;margin-bottom:.3rem" id="methodFastboot">○</div>
+            <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em">Fastboot</div>
+            <div class="text-xs text-dim" id="methodFastbootStatus">Not detected</div>
+          </div>
+          <div style="padding:.75rem;background:var(--gray-50);border-radius:var(--radius-sm);text-align:center">
+            <div style="font-size:1.2rem;margin-bottom:.3rem" id="methodHeimdall">○</div>
+            <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em">Heimdall</div>
+            <div class="text-xs text-dim" id="methodHeimdallStatus">Not detected</div>
+          </div>
+          <div style="padding:.75rem;background:var(--gray-50);border-radius:var(--radius-sm);text-align:center">
+            <div style="font-size:1.2rem;margin-bottom:.3rem" id="methodUsb">○</div>
+            <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em">USB Descriptor</div>
+            <div class="text-xs text-dim" id="methodUsbStatus">Not detected</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flash Guide CTA -->
+    <div id="flashCta" class="card mt-2 hidden">
+      <div class="card-body" style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <h4 style="font-size:.9rem;font-weight:700;color:var(--navy)">Ready to Flash</h4>
+          <p class="text-sm text-dim" id="flashCtaText">Device detected in Download Mode. Proceed to flash guide.</p>
+        </div>
+        <a href="/flash-guide" class="btn btn-primary">Flash Guide →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+function refreshDeviceStatus() {
+  fetch('/api/device/detect')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var now = new Date().toLocaleTimeString('en-US', {hour12:false});
+      document.getElementById('liveTime').textContent = now;
+
+      // Connection status
+      var dot = document.getElementById('liveDot');
+      var status = document.getElementById('liveStatus');
+      if (d.detected) {
+        dot.classList.remove('idle'); dot.classList.add('active');
+        status.textContent = 'DEVICE DETECTED';
+      } else {
+        dot.classList.remove('active'); dot.classList.add('idle');
+        status.textContent = 'NO DEVICE';
+      }
+
+      document.getElementById('liveMode').textContent = d.connection_mode || '—';
+      document.getElementById('liveMethod').textContent = d.detection_method || '—';
+
+      // Device info
+      setText('devModel', d.model || '—');
+      setText('devModelName', d.model_name || '—');
+      setText('devSerial', d.serial || '—');
+      setText('devFirmware', d.firmware || '—');
+      setText('devCsc', d.csc || '—');
+      setText('devChipset', d.chipset || '—');
+      setText('devAndroid', d.android_version || '—');
+      setText('devBootloader', d.bootloader_version || '—');
+      setText('devBinary', d.binary_version || '—');
+      setText('devPatch', d.security_patch || '—');
+      setText('devBattery', d.battery_level || '—');
+      setText('devCarrier', d.carrier || '—');
+
+      // Connection info
+      var modeEl = document.getElementById('devMode');
+      modeEl.textContent = d.connection_mode || '—';
+      document.getElementById('devVid').textContent = d.usb_vid || '—';
+      document.getElementById('devPid').textContent = d.usb_pid || '—';
+      document.getElementById('devLocation').textContent = d.usb_location || '—';
+      document.getElementById('devDetectMethod').textContent = d.detection_method || '—';
+
+      // Status chip
+      var statusChip = document.getElementById('devStatus');
+      if (d.detected) {
+        var mode = (d.connection_mode || '').toLowerCase();
+        if (mode.indexOf('download') !== -1) {
+          statusChip.innerHTML = '<span class="status-chip green">Download Mode</span>';
+        } else if (mode.indexOf('adb') !== -1) {
+          statusChip.innerHTML = '<span class="status-chip blue">ADB Mode</span>';
+        } else if (mode.indexOf('fastboot') !== -1) {
+          statusChip.innerHTML = '<span class="status-chip amber">Fastboot</span>';
+        } else {
+          statusChip.innerHTML = '<span class="status-chip green">Connected</span>';
+        }
+      } else {
+        statusChip.innerHTML = '<span class="status-chip amber">Scanning</span>';
+      }
+
+      // Flash readiness
+      var readiness = document.getElementById('flashReadiness');
+      var flashCta = document.getElementById('flashCta');
+      var flashCtaText = document.getElementById('flashCtaText');
+      if (d.detected && d.connection_mode && d.connection_mode.indexOf('Download') !== -1) {
+        readiness.className = 'alert alert-success';
+        readiness.innerHTML = '<strong>✓ READY FOR FLASHING</strong><br>Device detected in Download Mode. Use Odin on Windows to flash.<br><span style="font-size:.72rem">Note: MediaTek device detected. Odin on Windows is required.</span>';
+        flashCta.classList.remove('hidden');
+        flashCtaText.textContent = 'Device in Download Mode. Open flash guide for step-by-step Odin instructions.';
+      } else if (d.detected && d.connection_mode && d.connection_mode.indexOf('ADB') !== -1) {
+        readiness.className = 'alert alert-info';
+        readiness.innerHTML = '<strong>ℹ ADB MODE</strong><br>Device connected via ADB. Enable USB debugging and reboot to Download Mode for flashing.<br><span style="font-size:.72rem">Recovery, debloating, and feature toggles available.</span>';
+        flashCta.classList.add('hidden');
+      } else if (d.detected) {
+        readiness.className = 'alert alert-warning';
+        readiness.innerHTML = '<strong>⚠ ' + d.connection_mode + '</strong><br>Reboot device to Download Mode (Vol Down + Power) for firmware flashing.';
+        flashCta.classList.add('hidden');
+      } else {
+        readiness.className = 'alert alert-info';
+        readiness.innerHTML = 'Connect a Samsung device to begin detection.';
+        flashCta.classList.add('hidden');
+      }
+
+      // Detection method indicators
+      setMethod('methodAdb', d.detection_method, 'ADB');
+      setMethod('methodFastboot', d.detection_method, 'Fastboot');
+      setMethod('methodHeimdall', d.detection_method, 'Heimdall');
+      setMethod('methodUsb', d.detection_method, 'USB');
+    })
+    .catch(function() {
+      document.getElementById('liveStatus').textContent = 'ERROR';
+      document.getElementById('liveDot').classList.remove('active');
+      document.getElementById('liveDot').classList.add('idle');
+    });
+}
+
+function setText(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val || '—';
+}
+
+function setMethod(id, method, name) {
+  var el = document.getElementById(id);
+  var statusEl = document.getElementById(id + 'Status');
+  if (!el) return;
+  if (method && method.indexOf(name) !== -1) {
+    el.textContent = '●';
+    el.style.color = 'var(--green)';
+    if (statusEl) statusEl.textContent = 'Active';
+  } else {
+    el.textContent = '○';
+    el.style.color = 'var(--gray-300)';
+    if (statusEl) statusEl.textContent = 'Not detected';
+  }
+}
+
+// Initial load
+refreshDeviceStatus();
+// Auto-refresh every 5 seconds
+setInterval(refreshDeviceStatus, 5000);
+</script>
+
+{% endblock %}

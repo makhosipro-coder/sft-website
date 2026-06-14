@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{% block title %}Firmware Removal — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Operation</span>
+    <h1>Firmware Removal Process</h1>
+    <p>Step-by-step firmware removal and device restoration. Select the appropriate removal type for your situation.</p>
+  </div>
+</div>
+
+<!-- REMOVAL TYPE SELECTOR -->
+<section class="section" style="padding-top:2rem">
+  <div class="container">
+    <div class="removal-types">
+      <div class="removal-card" onclick="selectRemoval('standard', this)">
+        <div class="removal-icon">&#128260;</div>
+        <div class="removal-title">Standard Firmware Removal</div>
+        <div class="removal-desc">Remove current firmware and flash a clean stock ROM. Preserves bootloader and baseband.</div>
+        <div class="removal-meta"><span class="tag low">LOW RISK</span><span class="tag time">5-8 MIN</span></div>
+      </div>
+      <div class="removal-card" onclick="selectRemoval('clean', this)">
+        <div class="removal-icon">&#128228;</div>
+        <div class="removal-title">Clean Removal & Restore</div>
+        <div class="removal-desc">Full wipe including userdata, cache, and system. Restores factory state.</div>
+        <div class="removal-meta"><span class="tag med">MEDIUM RISK</span><span class="tag time">8-12 MIN</span></div>
+      </div>
+      <div class="removal-card" onclick="selectRemoval('emergency', this)">
+        <div class="removal-icon">&#128267;</div>
+        <div class="removal-title">Emergency Recovery</div>
+        <div class="removal-desc">For bootloop, soft-brick, or corrupted firmware. Full PIT re-partition + flash.</div>
+        <div class="removal-meta"><span class="tag high">HIGH RISK</span><span class="tag time">10-15 MIN</span></div>
+      </div>
+      <div class="removal-card" onclick="selectRemoval('bloat', this)">
+        <div class="removal-icon">&#128230;</div>
+        <div class="removal-title">Bloatware Removal</div>
+        <div class="removal-desc">Remove carrier and Samsung bloatware packages via ADB. No firmware flash required.</div>
+        <div class="removal-meta"><span class="tag low">LOW RISK</span><span class="tag time">2-5 MIN</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTERACTIVE REMOVAL WORKFLOW -->
+<section class="section" style="background:var(--gray-100)">
+  <div class="container">
+    <div class="removal-workflow">
+      <!-- Progress bar -->
+      <div class="workflow-progress" id="workflowProgress">
+        <div class="wp-step active" id="wp1"><span class="wp-num">1</span><span class="wp-label">Prepare</span></div>
+        <div class="wp-step" id="wp2"><span class="wp-num">2</span><span class="wp-label">Detect</span></div>
+        <div class="wp-step" id="wp3"><span class="wp-num">3</span><span class="wp-label">Validate</span></div>
+        <div class="wp-step" id="wp4"><span class="wp-num">4</span><span class="wp-label">Execute</span></div>
+        <div class="wp-step" id="wp5"><span class="wp-num">5</span><span class="wp-label">Verify</span></div>
+      </div>
+
+      <!-- Console output -->
+      <div class="console-card" style="margin-top:1.5rem">
+        <div class="console-header">
+          <span class="title">sft-removal — bash</span>
+          <div style="display:flex;gap:.5rem">
+            <button class="scan-btn" onclick="runRemovalStep()" id="runBtn">&#9654; RUN</button>
+            <button class="scan-btn" onclick="clearConsole()" style="color:var(--gray-500)">CLEAR</button>
+          </div>
+        </div>
+        <div class="console-body" id="removalLog" style="min-height:300px;max-height:400px;overflow-y:auto">
+          <div class="console-line"><span class="time">[--:--:--]</span><span class="msg">Removal workflow ready. Select a type above and click RUN.</span></div>
+        </div>
+      </div>
+
+      <!-- Action warnings -->
+      <div class="warning-box" style="margin-top:1rem" id="removalWarning" style="display:none">
+        <span class="warn-icon">&#9888;</span>
+        <p id="warningText"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DETAILED PROCESS -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Reference</span>
+      <h2>Firmware Removal Procedures</h2>
+    </div>
+    <div class="proc-grid">
+      <div class="proc-card">
+        <h4>Standard Removal</h4>
+        <ol class="proc-steps">
+          <li>Device enters Download Mode automatically</li>
+          <li>PIT is read and validated</li>
+          <li>BL (Bootloader) partition is preserved</li>
+          <li>AP (System) partition is flashed with clean ROM</li>
+          <li>CP (Modem) is preserved if compatible</li>
+          <li>HOME_CSC is used to preserve user data</li>
+          <li>Device reboots into clean system</li>
+        </ol>
+      </div>
+      <div class="proc-card">
+        <h4>Clean Removal</h4>
+        <ol class="proc-steps">
+          <li>Device enters Download Mode</li>
+          <li>Full PIT read and validation</li>
+          <li>All partitions except BL are wiped</li>
+          <li>AP flashed with stock firmware</li>
+          <li>CP flashed with stock modem</li>
+          <li>CSC (not HOME_CSC) used — full factory reset</li>
+          <li>Userdata and cache formatted</li>
+        </ol>
+      </div>
+      <div class="proc-card">
+        <h4>Emergency Recovery</h4>
+        <ol class="proc-steps">
+          <li>Force device into Download Mode (Vol Down + Power)</li>
+          <li>PIT file is loaded (extracted from device or provided)</li>
+          <li>Repartition flag is set — all partitions rebuilt</li>
+          <li>BL + AP + CP + CSC all flashed sequentially</li>
+          <li>Post-flash: device may take 5-10 min for first boot</li>
+          <li>If boot loop: repeat with different CSC variant</li>
+        </ol>
+      </div>
+      <div class="proc-card">
+        <h4>Bloatware Removal</h4>
+        <ol class="proc-steps">
+          <li>Device in normal Android mode with USB debugging ON</li>
+          <li>ADB connection established</li>
+          <li>Package list is enumerated: <code>adb shell pm list packages</code></li>
+          <li>Bloatware packages identified by CSC/carrier patterns</li>
+          <li>Packages disabled (not uninstalled): <code>pm disable-user</code></li>
+          <li>Device reboot changes are verified</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.removal-types{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.removal-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:1.5rem;cursor:pointer;transition:var(--transition)}
+.removal-card:hover{border-color:var(--blue);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.removal-card.selected{border-color:var(--blue);background:var(--blue-light)}
+.removal-icon{font-size:1.5rem;margin-bottom:.75rem}
+.removal-title{font-size:.85rem;font-weight:700;color:var(--navy);margin-bottom:.5rem}
+.removal-desc{font-size:.75rem;color:var(--gray-500);line-height:1.5;margin-bottom:.75rem}
+.removal-meta{display:flex;gap:.5rem}
+.tag{font-size:.6rem;font-weight:600;font-family:var(--font-mono);padding:.15rem .4rem;border-radius:2px}
+.tag.low{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.tag.med{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.tag.high{background:rgba(239,68,68,.08);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.tag.time{background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200)}
+.workflow-progress{display:flex;gap:0;align-items:center;justify-content:center}
+.wp-step{display:flex;align-items:center;gap:.5rem;padding:.5rem 1rem;opacity:.4;transition:var(--transition)}
+.wp-step.active{opacity:1}
+.wp-step.done{opacity:1}
+.wp-step.done .wp-num{background:var(--green);color:var(--white)}
+.wp-step.active .wp-num{background:var(--blue);color:var(--white)}
+.wp-num{width:24px;height:24px;background:var(--gray-200);color:var(--gray-500);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.65rem;font-weight:800}
+.wp-label{font-size:.72rem;font-weight:600;color:var(--gray-600);font-family:var(--font-mono)}
+.wp-step.active .wp-label{color:var(--blue)}
+.wp-step.done .wp-label{color:var(--green)}
+.proc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem}
+.proc-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:1.5rem}
+.proc-card h4{font-size:.85rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;font-family:var(--font-mono)}
+.proc-steps{padding-left:1.25rem}
+.proc-steps li{font-size:.78rem;color:var(--gray-600);padding:.2rem 0;line-height:1.5}
+@media(max-width:900px){.removal-types{grid-template-columns:repeat(2,1fr)}.proc-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.removal-types{grid-template-columns:1fr}}
+</style>
+
+<script>
+var selectedRemovalType = null;
+var currentRemovalStep = 0;
+var removalRunning = false;
+
+function selectRemoval(type, el) {
+  document.querySelectorAll('.removal-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedRemovalType = type;
+  clearConsole();
+  log('Selected: ' + type.toUpperCase() + ' removal', '');
+  log('Click RUN to begin the process.', '');
+}
+
+function clearConsole() {
+  document.getElementById('removalLog').innerHTML = '';
+}
+
+function log(msg, type) {
+  var el = document.getElementById('removalLog');
+  var cls = type === 'ok' ? ' msg ok' : type === 'err' ? ' msg err' : type === 'warn' ? ' msg warn' : '';
+  var time = new Date().toLocaleTimeString('en-US', {hour12:false});
+  el.innerHTML += '<div class="console-line"><span class="time">[' + time + ']</span><span class="msg' + cls + '">' + msg + '</span></div>';
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStep(n) {
+  for (var i = 1; i <= 5; i++) {
+    var s = document.getElementById('wp' + i);
+    s.classList.remove('active', 'done');
+    if (i < n) s.classList.add('done');
+    if (i === n) s.classList.add('active');
+  }
+  currentRemovalStep = n;
+}
+
+function runRemovalStep() {
+  if (!selectedRemovalType) {
+    alert('Please select a removal type first.');
+    return;
+  }
+  if (removalRunning) return;
+  removalRunning = true;
+  document.getElementById('runBtn').textContent = '⟳ RUNNING';
+  document.getElementById('runBtn').disabled = true;
+  clearConsole();
+
+  var steps = {
+    standard: [
+      { msg: '> Initializing standard firmware removal...', delay: 500, step: 1 },
+      { msg: '> Scanning USB ports for Samsung device...', delay: 800, step: 1 },
+      { msg: '> Found: Samsung device (04e8:685d) — Download Mode', delay: 1200, ok: true, step: 2 },
+      { msg: '> Reading PIT (Partition Information Table)...', delay: 1600, step: 2 },
+      { msg: '> PIT validated. 55 partitions detected. MediaTek chipset.', delay: 2000, ok: true, step: 2 },
+      { msg: '> Checking current firmware version...', delay: 2400, step: 3 },
+      { msg: '> Current: A042FXXSFEZB9 (Android 14, BL vF)', delay: 2800, step: 3 },
+      { msg: '> Checking target firmware compatibility...', delay: 3200, step: 3 },
+      { msg: '> Compatibility: OK. Rollback check: PASSED', delay: 3600, ok: true, step: 3 },
+      { msg: '> Flashing BL (Bootloader)... PRESERVED (same version)', delay: 4000, step: 4 },
+      { msg: '> Flashing AP (System partition)...', delay: 5000, step: 4 },
+      { msg: '> AP flash: 45% complete...', delay: 7000, step: 4 },
+      { msg: '> AP flash: 100% complete.', delay: 9000, step: 4 },
+      { msg: '> Flashing HOME_CSC (preserving user data)...', delay: 10000, step: 4 },
+      { msg: '> HOME_CSC flash complete.', delay: 11000, ok: true, step: 4 },
+      { msg: '> Verifying partition integrity...', delay: 12000, step: 5 },
+      { msg: '> All partitions verified. Checksum: OK', delay: 13000, ok: true, step: 5 },
+      { msg: '> Sending reboot command...', delay: 14000, step: 5 },
+      { msg: '> ✓ REMOVAL COMPLETE — Device rebooting', delay: 15000, ok: true, step: 5 },
+    ],
+    clean: [
+      { msg: '> Initializing clean removal & restore...', delay: 500, step: 1 },
+      { msg: '> WARNING: This will ERASE ALL USER DATA', delay: 800, warn: true, step: 1 },
+      { msg: '> Scanning USB ports...', delay: 1200, step: 2 },
+      { msg: '> Found: Samsung device (04e8:685d)', delay: 1600, ok: true, step: 2 },
+      { msg: '> Reading PIT...', delay: 2000, step: 2 },
+      { msg: '> PIT validated. Preparing for full wipe.', delay: 2400, step: 2 },
+      { msg: '> Validating target firmware...', delay: 3000, step: 3 },
+      { msg: '> Firmware: A042FXXSFEZB9 — Compatible', delay: 3400, ok: true, step: 3 },
+      { msg: '> Rollback check: PASSED', delay: 3800, ok: true, step: 3 },
+      { msg: '> Wiping userdata partition...', delay: 4500, step: 4 },
+      { msg: '> Wiping cache partition...', delay: 5000, step: 4 },
+      { msg: '> Flashing BL (Bootloader)...', delay: 5500, step: 4 },
+      { msg: '> Flashing AP (System)...', delay: 7000, step: 4 },
+      { msg: '> AP flash: 62%...', delay: 9000, step: 4 },
+      { msg: '> AP flash: 100%. Flashing CP (Modem)...', delay: 10500, step: 4 },
+      { msg: '> Flashing CSC (full factory reset)...', delay: 11500, step: 4 },
+      { msg: '> Formatting userdata (ext4)...', delay: 12500, step: 4 },
+      { msg: '> Verifying all partitions...', delay: 13500, step: 5 },
+      { msg: '> All partitions verified. Checksum: OK', delay: 14000, ok: true, step: 5 },
+      { msg: '> ✓ CLEAN REMOVAL COMPLETE — First boot: 3-5 min', delay: 15000, ok: true, step: 5 },
+    ],
+    emergency: [
+      { msg: '> Initializing EMERGENCY RECOVERY mode...', delay: 500, step: 1 },
+      { msg: '> WARNING: HIGH RISK OPERATION', delay: 800, warn: true, step: 1 },
+      { msg: '> Attempting device detection...', delay: 1200, step: 2 },
+      { msg: '> Device found in Download Mode (04e8:685d)', delay: 1800, ok: true, step: 2 },
+      { msg: '> Reading PIT from device...', delay: 2200, step: 2 },
+      { msg: '> PIT read FAILED — corrupt partition table detected!', delay: 2800, err: true, step: 2 },
+      { msg: '> Loading external PIT file...', delay: 3200, step: 2 },
+      { msg: '> External PIT loaded. 55 partitions defined.', delay: 3600, ok: true, step: 2 },
+      { msg: '> REPARTITION flag set. ALL data will be erased.', delay: 4000, warn: true, step: 3 },
+      { msg: '> Validating firmware package...', delay: 4500, step: 3 },
+      { msg: '> BL: Valid | AP: Valid | CP: Valid | CSC: Valid', delay: 5000, ok: true, step: 3 },
+      { msg: '> Beginning repartition + flash sequence...', delay: 5500, step: 4 },
+      { msg: '> Step 1/4: Flashing BL (Bootloader)...', delay: 7000, step: 4 },
+      { msg: '> Step 2/4: Flashing AP (System)...', delay: 9000, step: 4 },
+      { msg: '> AP flash: 78%...', delay: 11000, step: 4 },
+      { msg: '> AP flash: 100%. Step 3/4: Flashing CP...', delay: 12000, step: 4 },
+      { msg: '> Step 4/4: Flashing CSC (factory reset)...', delay: 13500, step: 4 },
+      { msg: '> Verifying partition table integrity...', delay: 14500, step: 5 },
+      { msg: '> PIT checksum: OK | All partitions: VERIFIED', delay: 15000, ok: true, step: 5 },
+      { msg: '> ✓ EMERGENCY RECOVERY COMPLETE — First boot: 5-10 min', delay: 16000, ok: true, step: 5 },
+    ],
+    bloat: [
+      { msg: '> Initializing bloatware removal...', delay: 500, step: 1 },
+      { msg: '> Checking ADB connection...', delay: 800, step: 2 },
+      { msg: '> ADB device found. USB debugging: ENABLED', delay: 1200, ok: true, step: 2 },
+      { msg: '> Enumerating installed packages...', delay: 1800, step: 3 },
+      { msg: '> Total packages: 142. Carrier/Samsung bloatware: 23', delay: 2400, step: 3 },
+      { msg: '> Identified bloatware packages:', delay: 2800, step: 3 },
+      { msg: '>   - com.facebook.katana (Facebook)', delay: 3000 },
+      { msg: '>   - com.facebook.services', delay: 3200 },
+      { msg: '>   - com.samsung.android.bixby.agent', delay: 3400 },
+      { msg: '>   - com.samsung.android.bixby.wakeup', delay: 3600 },
+      { msg: '>   - com.samsung.android.mdx', delay: 3800 },
+      { msg: '>   - com.samsung.android.app.tips', delay: 4000 },
+      { msg: '> Disabling packages (safe — reversible)...', delay: 4500, step: 4 },
+      { msg: '>   Disabled: com.facebook.katana', delay: 5000, ok: true },
+      { msg: '>   Disabled: com.facebook.services', delay: 5200, ok: true },
+      { msg: '>   Disabled: com.samsung.android.bixby.agent', delay: 5400, ok: true },
+      { msg: '>   Disabled: com.samsung.android.bixby.wakeup', delay: 5600, ok: true },
+      { msg: '>   Disabled: com.samsung.android.mdx', delay: 5800, ok: true },
+      { msg: '>   Disabled: com.samsung.android.app.tips', delay: 6000, ok: true },
+      { msg: '>   ... and 17 more packages', delay: 6200 },
+      { msg: '> Verifying changes...', delay: 7000, step: 5 },
+      { msg: '> All 23 packages disabled successfully.', delay: 7500, ok: true, step: 5 },
+      { msg: '> Sending device reboot...', delay: 8000, step: 5 },
+      { msg: '> ✓ BLOATWARE REMOVAL COMPLETE — 23 packages disabled', delay: 8500, ok: true, step: 5 },
+    ]
+  };
+
+  var seq = steps[selectedRemovalType];
+  var total = 0;
+  seq.forEach(function(s) {
+    total += s.delay;
+    setTimeout(function() {
+      log(s.msg, s.ok ? 'ok' : s.err ? 'err' : s.warn ? 'warn' : '');
+      if (s.step) setStep(s.step);
+      if (s.step === 5 && s.ok) {
+        removalRunning = false;
+        document.getElementById('runBtn').textContent = '✓ DONE';
+      }
+    }, total);
+  });
+}
+</script>
+
+{% endblock %}

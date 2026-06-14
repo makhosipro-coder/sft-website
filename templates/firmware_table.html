@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Firmware Table — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Database</span>
+    <h1>Firmware Compatibility Table</h1>
+    <p>Latest known firmware versions by model and region. Bootloader version is enforced to prevent rollback bricking.</p>
+  </div>
+</div>
+
+<!-- SEARCH & FILTER -->
+<div class="filter-bar">
+  <div class="container">
+    <div class="filter-inner">
+      <span class="section-label" style="margin:0">SEARCH:</span>
+      <input type="text" id="fwSearch" placeholder="Model, CSC, or firmware string..." oninput="filterFW()" style="flex:1;max-width:400px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:.4rem .75rem;font-family:var(--font-mono);font-size:.78rem;color:var(--gray-700)">
+      <select id="fwFilter" onchange="filterFW()" style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:.4rem .75rem;font-size:.78rem;color:var(--gray-700)">
+        <option value="all">All Regions</option>
+        <option value="OXM">OXM — Europe</option>
+        <option value="XAA">XAA — USA</option>
+        <option value="INS">INS — India</option>
+        <option value="KOO">KOO — Korea</option>
+        <option value="BTU">BTU — UK</option>
+        <option value="XFA">XFA — South Africa</option>
+        <option value="XFC">XFC — South Africa (Vodacom)</option>
+        <option value="XFD">XFD — South Africa (MTN)</option>
+        <option value="XSG">XSG — UAE</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- FIRMWARE TABLE -->
+<section class="section" style="padding-top:2rem">
+  <div class="container">
+    <div class="fw-table-wrap">
+      <table class="fw-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>CSC</th>
+            <th>Latest Firmware</th>
+            <th>Android</th>
+            <th>BL Ver</th>
+            <th>Type</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="fwTableBody">
+          <tr data-csc="OXM"><td class="model-cell">SM-S928B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">S928BXXS4AYA1</td><td>14</td><td><span class="bl-ver">4</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="XAA"><td class="model-cell">SM-S928U</td><td><span class="csc-badge">XAA</span></td><td class="fw-string">S928U1UEU4AYA1</td><td>14</td><td><span class="bl-ver">4</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="OXM"><td class="model-cell">SM-S918B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">S918BXXS7EXJ1</td><td>14</td><td><span class="bl-ver">7</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="XAA"><td class="model-cell">SM-S918U</td><td><span class="csc-badge">XAA</span></td><td class="fw-string">S918U1UEU7EXJ1</td><td>14</td><td><span class="bl-ver">7</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="OXM"><td class="model-cell">SM-S908B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">S908BXXS9EXJ2</td><td>14</td><td><span class="bl-ver">9</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="OXM"><td class="model-cell">SM-F946B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">F946BXXS5EXJ1</td><td>14</td><td><span class="bl-ver">5</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="OXM"><td class="model-cell">SM-F731B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">F731BXXS5EXJ1</td><td>14</td><td><span class="bl-ver">5</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="OXM"><td class="model-cell">SM-A556B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">A556BXXS8EXJ1</td><td>14</td><td><span class="bl-ver">8</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="INS"><td class="model-cell">SM-A556B</td><td><span class="csc-badge">INS</span></td><td class="fw-string">A556BXXS8EXJ1</td><td>14</td><td><span class="bl-ver">8</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="OXM"><td class="model-cell">SM-A546B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">A546BXXS7BYB1</td><td>14</td><td><span class="bl-ver">7</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="BTU"><td class="model-cell">SM-A546B</td><td><span class="csc-badge">BTU</span></td><td class="fw-string">A546BXXS7BYB1</td><td>14</td><td><span class="bl-ver">7</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="OXM"><td class="model-cell">SM-A356B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">A356BXXS6CYB1</td><td>14</td><td><span class="bl-ver">6</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="XSG"><td class="model-cell">SM-A042F</td><td><span class="csc-badge">XSG</span></td><td class="fw-string">A042FXXSFEZB9</td><td>14</td><td><span class="bl-ver">F</span></td><td>Security</td><td><span class="status-chip amber">Partial</span></td></tr>
+          <tr data-csc="INS"><td class="model-cell">SM-A042F</td><td><span class="csc-badge">INS</span></td><td class="fw-string">A042FXXSDEYJ2</td><td>14</td><td><span class="bl-ver">D</span></td><td>Security</td><td><span class="status-chip amber">Partial</span></td></tr>
+          <!-- South Africa -->
+          <tr data-csc="XFA"><td class="model-cell">SM-S928B</td><td><span class="csc-badge">XFA</span></td><td class="fw-string">S928BXXS4AYA1</td><td>14</td><td><span class="bl-ver">4</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="XFC"><td class="model-cell">SM-S928B</td><td><span class="csc-badge">XFC</span></td><td class="fw-string">S928BXXS4AYA1</td><td>14</td><td><span class="bl-ver">4</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="XFD"><td class="model-cell">SM-S918B</td><td><span class="csc-badge">XFD</span></td><td class="fw-string">S918BXXS7EXJ1</td><td>14</td><td><span class="bl-ver">7</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="XFE"><td class="model-cell">SM-A556B</td><td><span class="csc-badge">XFE</span></td><td class="fw-string">A556BXXS8EXJ1</td><td>14</td><td><span class="bl-ver">8</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="XFF"><td class="model-cell">SM-A546B</td><td><span class="csc-badge">XFF</span></td><td class="fw-string">A546BXXS7BYB1</td><td>14</td><td><span class="bl-ver">7</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="XFG"><td class="model-cell">SM-A546B</td><td><span class="csc-badge">XFG</span></td><td class="fw-string">A546BXXS7BYB1</td><td>14</td><td><span class="bl-ver">7</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="OXM"><td class="model-cell">SM-A156B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">A156BXXS5CYB1</td><td>14</td><td><span class="bl-ver">5</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="XAA"><td class="model-cell">SM-S911B</td><td><span class="csc-badge">XAA</span></td><td class="fw-string">S911BXXS7EXJ1</td><td>14</td><td><span class="bl-ver">7</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+          <tr data-csc="OXM"><td class="model-cell">SM-N986B</td><td><span class="csc-badge">OXM</span></td><td class="fw-string">N986BXXSGFW3</td><td>13</td><td><span class="bl-ver">F</span></td><td>Security</td><td><span class="status-chip green">Current</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="fw-note">
+      <span class="note-label">NOTE:</span> BL Ver = Bootloader/Binary version. Flashing firmware with a lower BL version than current is blocked by rollback prevention. Partial = MediaTek devices require Odin on Windows; full flashing not supported via macOS/Linux.
+    </div>
+  </div>
+</section>
+
+<!-- FIRMWARE STRING DECODER -->
+<section class="section" style="background:var(--gray-100);border-top:1px solid var(--gray-200)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Tool</span>
+      <h2>Firmware String Decoder</h2>
+      <p>Parse any 13-character Samsung firmware string into its component parts.</p>
+    </div>
+    <div class="decoder-wrap">
+      <div class="form-group">
+        <label>Enter Firmware String</label>
+        <input type="text" id="decodeInput" placeholder="e.g. S928BXXS4AYA1" maxlength="13" oninput="decodeFW(this.value)" style="max-width:400px;text-transform:uppercase;letter-spacing:.04em">
+      </div>
+      <div class="decode-results" id="decodeResults" style="display:none">
+        <div class="decode-grid">
+          <div class="decode-item">
+            <div class="decode-label">Hardware</div>
+            <div class="decode-value" id="decHardware">—</div>
+            <div class="decode-hint" id="decHardwareHint">—</div>
+          </div>
+          <div class="decode-item">
+            <div class="decode-label">Market / CSC</div>
+            <div class="decode-value" id="decMarket">—</div>
+            <div class="decode-hint" id="decMarketHint">—</div>
+          </div>
+          <div class="decode-item">
+            <div class="decode-label">Binary Version</div>
+            <div class="decode-value" id="decBinary">—</div>
+            <div class="decode-hint" id="decBinaryHint">—</div>
+          </div>
+          <div class="decode-item">
+            <div class="decode-label">Build Date</div>
+            <div class="decode-value" id="decDate">—</div>
+            <div class="decode-hint" id="decDateHint">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.csc-badge{font-family:var(--font-mono);font-size:.65rem;font-weight:700;color:var(--blue);background:var(--blue-light);padding:.15rem .4rem;border-radius:2px}
+.fw-string{font-family:var(--font-mono);font-size:.82rem;font-weight:600;color:var(--gray-700);letter-spacing:.02em}
+.bl-ver{font-family:var(--font-mono);font-size:.82rem;font-weight:700;color:var(--navy)}
+.status-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .5rem;border-radius:2px;font-size:.65rem;font-weight:600;font-family:var(--font-mono)}
+.status-chip.green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.status-chip.amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.fw-note{margin-top:1rem;padding:.75rem 1rem;background:var(--blue-light);border:1px solid rgba(20,40,160,.1);border-radius:var(--radius-sm);font-size:.75rem;color:var(--gray-600);line-height:1.5}
+.note-label{font-family:var(--font-mono);font-size:.65rem;font-weight:700;color:var(--blue);letter-spacing:.04em;text-transform:uppercase;margin-right:.5rem}
+.decoder-wrap{max-width:800px}
+.decode-results{margin-top:1.5rem}
+.decode-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.decode-item{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:1rem}
+.decode-label{font-family:var(--font-mono);font-size:.6rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem}
+.decode-value{font-family:var(--font-mono);font-size:.9rem;font-weight:700;color:var(--navy)}
+.decode-hint{font-size:.68rem;color:var(--gray-400);margin-top:.2rem}
+@media(max-width:768px){.decode-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<script>
+function filterFW() {
+  var q = document.getElementById('fwSearch').value.toUpperCase();
+  var csc = document.getElementById('fwFilter').value;
+  var rows = document.querySelectorAll('#fwTableBody tr');
+  rows.forEach(function(row) {
+    var text = row.textContent.toUpperCase();
+    var rowCsc = row.dataset.csc;
+    var matchQ = text.indexOf(q) !== -1;
+    var matchCsc = csc === 'all' || rowCsc === csc;
+    row.style.display = (matchQ && matchCsc) ? '' : 'none';
+  });
+}
+
+function decodeFW(val) {
+  var results = document.getElementById('decodeResults');
+  if (val.length !== 13) {
+    results.style.display = 'none';
+    return;
+  }
+  results.style.display = 'block';
+  // Parse firmware string
+  var hardware = val.substring(0, 5);
+  var market = val.substring(5, 8);
+  var binary = val.substring(8, 9);
+  var type = val.substring(9, 10);
+  var build = val.substring(10, 13);
+  // Decode
+  var series = hardware[0];
+  var seriesNames = { S: 'Galaxy S', N: 'Galaxy Note', A: 'Galaxy A', M: 'Galaxy M', F: 'Galaxy F', Z: 'Galaxy Z' };
+  var seriesName = seriesNames[series] || 'Unknown';
+  var modelNum = hardware.substring(1, 4);
+  var variant = hardware[4];
+  var variants = { B: 'International', U: 'USA', N: 'Korea', F: 'China' };
+  var variantName = variants[variant] || variant;
+  // Year/month from build
+  var yearCode = build[0];
+  var monthCode = build[1];
+  var year = 2024 + (yearCode.charCodeAt(0) - 'A'.charCodeAt(0));
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var month = months[monthCode.charCodeAt(0) - 'A'.charCodeAt(0)] || monthCode;
+  document.getElementById('decHardware').textContent = hardware;
+  document.getElementById('decHardwareHint').textContent = seriesName + ' ' + modelNum + ' (' + variantName + ')';
+  document.getElementById('decMarket').textContent = market;
+  document.getElementById('decMarketHint').textContent = 'Multi-CSC region group';
+  document.getElementById('decBinary').textContent = binary;
+  document.getElementById('decBinaryHint').textContent = 'Bootloader v' + binary + ' — Rollback prevention enforced';
+  document.getElementById('decDate').textContent = month + ' ' + year;
+  document.getElementById('decDateHint').textContent = 'Build identifier: ' + build;
+}
+</script>
+
+{% endblock %}

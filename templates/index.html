@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}SFT — Samsung Firmware Tool | Local USB Firmware Control{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-scan">
+        <span class="dot"></span>
+        <span id="scanText">Scanning for USB devices...</span>
+      </div>
+      <h1 class="animate-in">Detect. Override.<br><span class="accent">Reset.</span></h1>
+      <p class="subtitle animate-in delay-1">Samsung Firmware Reset — Local USB, No Internet Required</p>
+      <p class="description animate-in delay-2">Automatically detects connected Samsung devices via USB and walks you through a complete firmware MAC override and factory reset — no cloud, no waiting, no guesswork.</p>
+      <div class="hero-ctas animate-in delay-3">
+        <a href="/reset-wizard" class="btn btn-primary">&#9654; &nbsp;Start Reset Process</a>
+        <a href="/firmware-table" class="btn btn-outline">Firmware Table</a>
+      </div>
+    </div>
+    <div class="console-card animate-in delay-2">
+      <div class="console-header">
+        <span class="title">sft-device-detect — bash</span>
+        <span class="badge">&#9679; {% if device_info and device_info.detected %}DETECTED{% else %}SCANNING{% endif %}</span>
+      </div>
+      <div class="console-body">
+        <div class="console-line"><span class="time">[00:00:01]</span><span class="msg">&gt; Initializing auto-detection...</span></div>
+        <div class="console-line"><span class="time">[00:00:02]</span><span class="msg">&gt; Scanning ADB interface...</span></div>
+        <div class="console-line"><span class="time">[00:00:03]</span><span class="msg">&gt; Scanning Fastboot interface...</span></div>
+        <div class="console-line"><span class="time">[00:00:04]</span><span class="msg">&gt; Scanning USB Download Mode...</span></div>
+        {% if device_info and device_info.detected %}
+        <div class="console-line"><span class="time">[00:00:05]</span><span class="msg ok">&gt; Device detected via {{ device_info.detection_method }}</span></div>
+        <div class="console-line"><span class="time">[00:00:06]</span><span class="msg ok">&gt; Model: {{ device_info.model }} ({{ device_info.model_name }})</span></div>
+        {% if device_info.firmware %}
+        <div class="console-line"><span class="time">[00:00:07]</span><span class="msg">&gt; Firmware: <span class="msg val">{{ device_info.firmware }}</span></span></div>
+        {% endif %}
+        {% if device_info.csc %}
+        <div class="console-line"><span class="time">[00:00:08]</span><span class="msg">&gt; CSC: <span class="msg val">{{ device_info.csc }}</span></span></div>
+        {% endif %}
+        {% if device_info.chipset %}
+        <div class="console-line"><span class="time">[00:00:09]</span><span class="msg">&gt; Chipset: <span class="msg val">{{ device_info.chipset }}</span></span></div>
+        {% endif %}
+        {% if device_info.android_version %}
+        <div class="console-line"><span class="time">[00:00:10]</span><span class="msg">&gt; Android: <span class="msg val">{{ device_info.android_version }}</span></span></div>
+        {% endif %}
+        {% if device_info.battery_level %}
+        <div class="console-line"><span class="time">[00:00:11]</span><span class="msg">&gt; Battery: <span class="msg val">{{ device_info.battery_level }}</span></span></div>
+        {% endif %}
+        <div class="console-line"><span class="time">[00:00:12]</span><span class="msg ok">&gt; Status: READY FOR OPERATIONS &#10003;</span></div>
+        {% else %}
+        <div class="console-line"><span class="time">[00:00:05]</span><span class="msg">&gt; No Samsung device detected</span></div>
+        <div class="console-line"><span class="time">[00:00:06]</span><span class="msg">&gt; Connect a Samsung device via USB</span></div>
+        <div class="console-line"><span class="time">[00:00:07]</span><span class="msg">&gt; Supported modes: ADB, Fastboot, Download Mode</span></div>
+        {% endif %}
+        <div class="console-device">
+          <div class="device-name">DEVICE {% if device_info and device_info.detected %}DETECTED{% else %}NOT FOUND{% endif %}</div>
+          <div class="device-field"><span class="label">Model</span><span class="value">{% if device_info %}{{ device_info.model or '—' }}{% else %}—{% endif %}</span></div>
+          <div class="device-field"><span class="label">Firmware</span><span class="value highlight">{% if device_info %}{{ device_info.firmware or '—' }}{% else %}—{% endif %}</span></div>
+          <div class="device-field"><span class="label">Mode</span><span class="value">{% if device_info %}{{ device_info.connection_mode or '—' }}{% else %}—{% endif %}</span></div>
+          <div class="device-field"><span class="label">Method</span><span class="value">{% if device_info %}{{ device_info.detection_method or '—' }}{% else %}—{% endif %}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE STATUS BAR -->
+<div class="status-bar">
+  <div class="status-bar-inner">
+    <div class="status-item">
+      <span class="indicator"></span>
+      <span>USB Port: <span class="value">{% if devices %}Active{% else %}Idle{% endif %}</span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Device Detected: <span class="value">{% if device_info and device_info.detected %}Yes{% else %}No{% endif %}</span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Model: <span class="value">{% if device_info %}{{ device_info.model }}{% if device_info.model_name %} ({{ device_info.model_name }}){% endif %}{% else %}—{% endif %}</span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Firmware: <span class="value">{% if device_info %}{{ device_info.firmware or '—' }}{% else %}—{% endif %}</span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>CSC: <span class="value">{% if device_info %}{{ device_info.csc or '—' }}{% else %}—{% endif %}</span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Mode: <span class="value">{% if device_info %}{{ device_info.connection_mode }}{% else %}—{% endif %}</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Process</span>
+      <h2>How It Works</h2>
+      <p>Four steps. No guesswork. Full control over your Samsung firmware.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card animate-in delay-1">
+        <div class="step-num">01</div>
+        <div class="step-icon">&#128268;</div>
+        <h4>Connect</h4>
+        <p>Plug your Samsung device into any USB port. The tool detects it automatically.</p>
+      </div>
+      <div class="step-card animate-in delay-2">
+        <div class="step-num">02</div>
+        <div class="step-icon">&#128269;</div>
+        <h4>Identify</h4>
+        <p>Device model, firmware version, and MAC address are read instantly — no manual entry.</p>
+      </div>
+      <div class="step-card animate-in delay-3">
+        <div class="step-num">03</div>
+        <div class="step-icon">&#9889;</div>
+        <h4>Override &amp; Flash</h4>
+        <p>Select your reset type: MAC Override, Factory Reset, or Full Firmware Flash.</p>
+      </div>
+      <div class="step-card animate-in delay-4">
+        <div class="step-num">04</div>
+        <div class="step-icon">&#9989;</div>
+        <h4>Complete</h4>
+        <p>Verification runs automatically. Your device reboots clean and ready.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUPPORTED MODELS -->
+<section class="section models-section" id="models">
+  <div class="container">
+    <div class="models-header">
+      <div>
+        <span class="section-label">Compatibility</span>
+        <h2>Supported Models</h2>
+        <p style="color:var(--gray-500);font-size:.92rem;margin-top:.5rem">Covers Samsung Galaxy S, A, Note, and Z series from 2018 onward.</p>
+      </div>
+      <a href="/models" class="view-all">View all models &rarr;</a>
+    </div>
+    <div class="models-grid">
+      <div class="model-card animate-in delay-1">
+        <div class="model-card-header"><div class="model-name">Samsung Galaxy S24 Ultra</div><span class="model-badge">S Series</span></div>
+        <div class="model-details"><span>One UI 6.1 / Android 14</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Compatible</div>
+      </div>
+      <div class="model-card animate-in delay-1">
+        <div class="model-card-header"><div class="model-name">Samsung Galaxy S23 FE</div><span class="model-badge">S Series</span></div>
+        <div class="model-details"><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Compatible</div>
+      </div>
+      <div class="model-card animate-in delay-2">
+        <div class="model-card-header"><div class="model-name">Samsung Galaxy A54 5G</div><span class="model-badge">A Series</span></div>
+        <div class="model-details"><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Compatible</div>
+      </div>
+      <div class="model-card animate-in delay-2">
+        <div class="model-card-header"><div class="model-name">Samsung Galaxy Z Fold 5</div><span class="model-badge">Z Series</span></div>
+        <div class="model-details"><span>One UI 5.1 / Android 13</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Compatible</div>
+      </div>
+      <div class="model-card animate-in delay-3">
+        <div class="model-card-header"><div class="model-name">Samsung Galaxy Note 20 Ultra</div><span class="model-badge">Note Series</span></div>
+        <div class="model-details"><span>One UI 2.5 / Android 10</span></div>
+        <div class="model-tag"><span class="tag-dot"></span>Compatible</div>
+      </div>
+      <div class="model-card animate-in delay-3">
+        <div class="model-card-header"><div class="model-name">Samsung Galaxy A04e</div><span class="model-badge">A Series</span></div>
+        <div class="model-details"><span>One UI 6.1 / Android 14</span></div>
+        <div class="model-tag partial"><span class="tag-dot"></span>Partial (MediaTek)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESET TYPES -->
+<section class="section" id="firmware">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Operations</span>
+      <h2>Reset Types Explained</h2>
+      <p>Choose the right operation for your situation.</p>
+    </div>
+    <div class="reset-grid">
+      <a href="/override" class="reset-card animate-in delay-1" style="text-decoration:none;color:inherit">
+        <div class="icon">&#128273;</div>
+        <h4>MAC Address Override</h4>
+        <p>Resets the hardware MAC address to factory default or applies a custom override. Reversible.</p>
+      </a>
+      <a href="/reset-wizard" class="reset-card animate-in delay-2" style="text-decoration:none;color:inherit">
+        <div class="icon">&#128260;</div>
+        <h4>Factory Reset via USB</h4>
+        <p>Performs a full wipe and reinstall of the stock Samsung firmware without touching the bootloader.</p>
+      </a>
+      <a href="/removal" class="reset-card animate-in delay-3" style="text-decoration:none;color:inherit">
+        <div class="icon">&#128228;</div>
+        <h4>Firmware Removal</h4>
+        <p>Remove, replace, or downgrade firmware. Includes emergency recovery and bloatware removal.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- SAFETY BANNER -->
+<div class="safety-banner">
+  <div class="safety-inner">
+    <span class="safety-icon">&#9888;&#65039;</span>
+    <p class="safety-text"><strong>Safety Notice:</strong> Always back up your data before proceeding. This tool performs irreversible operations. Ensure your device has at least 30% battery before starting.</p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="cta-inner">
+    <h2>Ready to Reset Your Device?</h2>
+    <p>Connect your Samsung device via USB and click Start — the tool handles the rest.</p>
+    <a href="/reset-wizard" class="btn btn-primary">&#9654; &nbsp;Start Reset Process</a>
+    <div class="cta-line">No internet required — runs entirely on local USB</div>
+  </div>
+</section>
+
+{% endblock %}

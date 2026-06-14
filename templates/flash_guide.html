@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}Flash Guide — SFT{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="container">
+    <span class="section-label">Workflow</span>
+    <h1>Flash Guide</h1>
+    <p>Step-by-step Odin flashing instructions. Model-specific guidance based on connected device.</p>
+  </div>
+</div>
+
+<!-- Device Status Banner -->
+<div class="status-bar">
+  <div class="status-bar-inner">
+    <div class="status-item">
+      <span class="status-dot {% if device_info and device_info.detected %}active{% else %}idle{% endif %}" id="flashDot"></span>
+      <span>Device: <span class="value" id="flashDevice">
+        {% if device_info and device_info.detected %}
+          {{ device_info.model or 'Samsung' }} {% if device_info.model_name %}({{ device_info.model_name }}){% endif %} — {{ device_info.connection_mode }}
+        {% else %}
+          Not detected
+        {% endif %}
+      </span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>USB: <span class="value" id="flashUsb">
+        {% if device_info %}{{ device_info.usb_vid }}:{{ device_info.usb_pid }}{% else %}—{% endif %}
+      </span></span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span>Serial: <span class="value" id="flashSerial">
+        {% if device_info %}{{ device_info.serial or '—' }}{% else %}—{% endif %}
+      </span></span>
+    </div>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <!-- MediaTek Warning -->
+    <div id="mtkWarning" class="alert alert-warning hidden">
+      <strong>⚠ MEDIATek DEVICE DETECTED</strong><br>
+      This device uses a MediaTek chipset. <strong>Odin on Windows is REQUIRED.</strong>
+      Heimdall cannot flash MediaTek devices on macOS/Linux. Use VirtualBox with Windows VM or Boot Camp.
+    </div>
+
+    <!-- Download Mode Warning -->
+    <div id="modeWarning" class="alert alert-danger hidden">
+      <strong>⚠ DEVICE NOT IN DOWNLOAD MODE</strong><br>
+      Your device must be in Download Mode for Odin flashing. Reboot to Download Mode and refresh.
+    </div>
+
+    <div class="grid-2">
+      <!-- Left: Instructions -->
+      <div>
+        <!-- Step 1: Prerequisites -->
+        <div class="card">
+          <div class="card-header"><h3>STEP 1: PREREQUISITES</h3></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:.5rem">
+              <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer;font-size:.78rem;padding:.5rem .65rem;background:var(--gray-50);border-radius:var(--radius-sm)"><input type="checkbox" id="prereq1" onchange="checkPrereqs()"> Windows PC or VM with VirtualBox (required for MediaTek)</label>
+              <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer;font-size:.78rem;padding:.5rem .65rem;background:var(--gray-50);border-radius:var(--radius-sm)"><input type="checkbox" id="prereq2" onchange="checkPrereqs()"> Samsung USB drivers installed</label>
+              <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer;font-size:.78rem;padding:.5rem .65rem;background:var(--gray-50);border-radius:var(--radius-sm)"><input type="checkbox" id="prereq3" onchange="checkPrereqs()"> Odin3 v3.14.4 downloaded</label>
+              <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer;font-size:.78rem;padding:.5rem .65rem;background:var(--gray-50);border-radius:var(--radius-sm)"><input type="checkbox" id="prereq4" onchange="checkPrereqs()"> Firmware files downloaded (BL, AP, CP, CSC)</label>
+              <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer;font-size:.78rem;padding:.5rem .65rem;background:var(--gray-50);border-radius:var(--radius-sm)"><input type="checkbox" id="prereq5" onchange="checkPrereqs()"> Device battery ≥ 50%</label>
+              <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer;font-size:.78rem;padding:.5rem .65rem;background:var(--gray-50);border-radius:var(--radius-sm)"><input type="checkbox" id="prereq6" onchange="checkPrereqs()"> USB data cable (not charge-only)</label>
+            </div>
+            <div id="prereqStatus" class="alert alert-info mt-2">Complete all prerequisites before proceeding.</div>
+          </div>
+        </div>
+
+        <!-- Step 2: Enter Download Mode -->
+        <div class="card mt-2">
+          <div class="card-header"><h3>STEP 2: ENTER DOWNLOAD MODE</h3></div>
+          <div class="card-body">
+            <ol style="padding-left:1.25rem;font-size:.78rem;color:var(--gray-600);line-height:1.7">
+              <li>Power off the device completely</li>
+              <li>Press and hold <strong>Volume Down + Power</strong> simultaneously</li>
+              <li>When the warning screen appears, release both buttons</li>
+              <li>Press <strong>Volume Up</strong> to confirm Download Mode</li>
+              <li>Screen should show "Downloading... Do not turn off target!!"</li>
+            </ol>
+            <div style="margin-top:.75rem;padding:.5rem .75rem;background:var(--blue-light);border-radius:var(--radius-sm);font-size:.72rem;color:var(--blue)">
+              <strong>Tip:</strong> If device boots normally, repeat the process. Timing is key — hold both buttons before connecting USB.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: CSC Selection -->
+        <div class="card mt-2">
+          <div class="card-header"><h3>STEP 3: SELECT CSC TYPE</h3></div>
+          <div class="card-body">
+            <table class="data-table">
+              <thead><tr><th>Option</th><th>Data</th><th>Use When</th></tr></thead>
+              <tbody>
+                <tr><td><span class="csc-badge">HOME_CSC</span></td><td><span class="status-chip green">Preserved</span></td><td>Updating firmware, keeping apps/data</td></tr>
+                <tr><td><span class="csc-badge">CSC</span></td><td><span class="status-chip red">All Erased</span></td><td>Clean install, region change, selling device</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:.75rem;padding:.5rem .75rem;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--radius-sm);font-size:.72rem;color:#92400e">
+              <strong>⚠ WARNING:</strong> Selecting CSC (not HOME_CSC) will perform a COMPLETE FACTORY RESET. All user data, apps, settings, and accounts will be ERASED.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Odin Layout -->
+      <div>
+        <div class="card">
+          <div class="card-header"><h3>ODIN FLASH LAYOUT</h3></div>
+          <div class="card-body">
+            <div style="font-family:var(--font-mono);font-size:.72rem;background:var(--navy);color:var(--gray-300);padding:1rem;border-radius:var(--radius-sm);line-height:1.7">
+              <div style="color:var(--gray-400);text-transform:uppercase;font-size:.65rem;letter-spacing:.04em;margin-bottom:.5rem">Odin3 v3.14.4</div>
+
+              <div style="margin-bottom:.3rem">BL:  [<span id="odinBL">━━━━━━━━━━━━</span>] <span style="color:var(--green)" id="odinBLStatus">Click to select BL file</span></div>
+              <div style="margin-bottom:.3rem">AP:  [<span id="odinAP">━━━━━━━━━━━━</span>] <span style="color:#6db3f2" id="odinAPStatus">Click to select AP file</span></div>
+              <div style="margin-bottom:.3rem">CP:  [<span id="odinCP">━━━━━━━━━━━━</span>] <span style="color:var(--amber)" id="odinCPStatus">Click to select CP file</span></div>
+              <div style="margin-bottom:.5rem">CSC: [<span id="odinCSC">━━━━━━━━━━━━</span>] <span style="color:var(--purple)" id="odinCSCStatus">Click to select CSC file</span></div>
+
+              <div style="margin-top:.5rem;border-top:1px solid rgba(255,255,255,.06);padding-top:.5rem">
+                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;color:var(--white)">
+                  <input type="checkbox" id="odinAutoReboot" checked> Auto Reboot
+                </label>
+                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;color:var(--white);margin-top:.3rem">
+                  <input type="checkbox" id="odinFReset" checked> F. Reset Time
+                </label>
+              </div>
+
+              <div style="margin-top:.75rem;padding:.5rem;background:rgba(255,255,255,.04);border-radius:var(--radius-sm)">
+                <label style="display:flex;align-items:flex-start;gap:.5rem;cursor:pointer;color:var(--white)">
+                  <input type="radio" name="odinCscType" value="home" checked onchange="updateOdinCscType()"> <span>HOME_CSC — Preserve user data</span>
+                </label>
+                <label style="display:flex;align-items:flex-start;gap:.5rem;cursor:pointer;color:var(--red);margin-top:.3rem">
+                  <input type="radio" name="odinCscType" value="full" onchange="updateOdinCscType()"> <span>CSC — FACTORY RESET (erases ALL data)</span>
+                </label>
+              </div>
+
+              <div id="odinCscWarning" class="hidden" style="margin-top:.5rem;padding:.5rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--red);border-radius:2px">
+                ⚠ WARNING: ALL USER DATA WILL BE ERASED
+              </div>
+
+              <div style="margin-top:.75rem;font-size:.65rem;color:var(--gray-500)">
+                Estimated time: 3–8 minutes<br>
+                Do NOT disconnect USB during flash!
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flash Checklist -->
+        <div class="card mt-2">
+          <div class="card-header"><h3>FLASH CHECKLIST</h3></div>
+          <div class="card-body">
+            <table class="data-table">
+              <thead><tr><th>Step</th><th>Action</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>Device in Download Mode</td><td id="fcMode" class="status-chip amber">Pending</td></tr>
+                <tr><td>2</td><td>USB connected to Windows</td><td id="fcUsb" class="status-chip amber">Pending</td></tr>
+                <tr><td>3</td><td>Odin shows "Added!"</td><td id="fcOdin" class="status-chip amber">Pending</td></tr>
+                <tr><td>4</td><td>BL file loaded</td><td id="fcBL" class="status-chip amber">Pending</td></tr>
+                <tr><td>5</td><td>AP file loaded</td><td id="fcAP" class="status-chip amber">Pending</td></tr>
+                <tr><td>6</td><td>CP file loaded</td><td id="fcCP" class="status-chip amber">Pending</td></tr>
+                <tr><td>7</td><td>CSC/HOME_CSC loaded</td><td id="fcCSC" class="status-chip amber">Pending</td></tr>
+                <tr><td>8</td><td>Click START</td><td id="fcStart" class="status-chip amber">Pending</td></tr>
+                <tr><td>9</td><td>Wait for "PASS!"</td><td id="fcPass" class="status-chip amber">Pending</td></tr>
+                <tr><td>10</td><td>Device reboots automatically</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Post-Flash -->
+        <div class="card mt-2">
+          <div class="card-header"><h3>POST-FLASH</h3></div>
+          <div class="card-body">
+            <ol style="padding-left:1.25rem;font-size:.78rem;color:var(--gray-600);line-height:1.7">
+              <li>Wait for "PASS!" in Odin (green box)</li>
+              <li>Device will reboot automatically</li>
+              <li>First boot may take 3–5 minutes — this is normal</li>
+              <li>Complete initial setup wizard</li>
+              <li>Verify firmware: Settings → About phone → Software info</li>
+              <li>Check CSC: Dial <code>*#1234#</code></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+var prereqsDone = 0;
+function checkPrereqs() {
+  var total = 6;
+  prereqsDone = 0;
+  for (var i = 1; i <= total; i++) {
+    if (document.getElementById('prereq' + i).checked) prereqsDone++;
+  }
+  var status = document.getElementById('prereqStatus');
+  if (prereqsDone === total) {
+    status.className = 'alert alert-success';
+    status.innerHTML = '<strong>✓ ALL PREREQUISITES COMPLETE</strong> — You are ready to flash.';
+  } else {
+    status.className = 'alert alert-info';
+    status.innerHTML = prereqsDone + '/' + total + ' prerequisites completed.';
+  }
+}
+
+function updateOdinCscType() {
+  var type = document.querySelector('input[name="odinCscType"]:checked').value;
+  var warning = document.getElementById('odinCscWarning');
+  if (type === 'full') {
+    warning.classList.remove('hidden');
+  } else {
+    warning.classList.add('hidden');
+  }
+}
+
+// Check device mode on load
+function checkDeviceMode() {
+  fetch('/api/device/detect')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var mtkWarning = document.getElementById('mtkWarning');
+      var modeWarning = document.getElementById('modeWarning');
+
+      if (d.detected) {
+        // Update status banner
+        document.getElementById('flashDot').classList.remove('idle');
+        document.getElementById('flashDot').classList.add('active');
+
+        var mode = (d.connection_mode || '').toLowerCase();
+        if (mode.indexOf('download') !== -1) {
+          modeWarning.classList.add('hidden');
+          document.getElementById('fcMode').className = 'status-chip green';
+          document.getElementById('fcMode').textContent = 'Ready';
+        } else {
+          modeWarning.classList.remove('hidden');
+        }
+
+        // Check for MediaTek
+        if (d.raw_props && d.raw_props.pit_output) {
+          if (d.raw_props.pit_output.toUpperCase().indexOf('MTK') !== -1 || d.raw_props.pit_output.toUpperCase().indexOf('MEDIATEK') !== -1) {
+            mtkWarning.classList.remove('hidden');
+          }
+        }
+      } else {
+        document.getElementById('flashDot').classList.remove('active');
+        document.getElementById('flashDot').classList.add('idle');
+        modeWarning.classList.add('hidden');
+      }
+    })
+    .catch(function() {});
+}
+
+checkDeviceMode();
+setInterval(checkDeviceMode, 10000);
+</script>
+
+{% endblock %}

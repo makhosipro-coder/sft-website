@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# VirtualBox
+*.vdi
+*.vbox*
+VirtualBox VMs/
+
+# Firmware files (too large for git)
+*.tar.md5
+*.tar
+*.zip
+firmware/
+
+# Node (for future Android builds)
+node_modules/
+*.apk
+*.aab

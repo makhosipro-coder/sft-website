@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}SFT — Samsung Firmware Tool{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <div class="logo-mark">SFT</div>
+      <span class="logo-text">Samsung Firmware Tool</span>
+    </a>
+    <nav>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/" {% if request.path == '/' %}class="active"{% endif %}>Home</a></li>
+        <li><a href="/device-status" {% if request.path == '/device-status' %}class="active"{% endif %}>Device</a></li>
+        <li><a href="/flash-guide" {% if request.path == '/flash-guide' %}class="active"{% endif %}>Flash</a></li>
+        <li><a href="/models" {% if request.path == '/models' %}class="active"{% endif %}>Models</a></li>
+        <li><a href="/reset-wizard" {% if request.path == '/reset-wizard' %}class="active"{% endif %}>Reset</a></li>
+        <li><a href="/firmware-table" {% if request.path == '/firmware-table' %}class="active"{% endif %}>Firmware</a></li>
+        <li><a href="/removal" {% if request.path == '/removal' %}class="active"{% endif %}>Removal</a></li>
+        <li><a href="/test" {% if request.path == '/test' %}class="active"{% endif %}>Test</a></li>
+        <li><a href="/override" {% if request.path == '/override' %}class="active"{% endif %}>Override</a></li>
+        <li><a href="/safety-guide" {% if request.path == '/safety-guide' %}class="active"{% endif %}>Safety</a></li>
+      </ul>
+    </nav>
+    <div class="header-cta">
+      <div class="header-status">
+        <span class="status-dot idle" id="headerDot"></span>
+        <span id="headerStatus" style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray-400)">IDLE</span>
+      </div>
+      <a href="/reset-wizard" class="btn btn-primary btn-sm">Start Reset</a>
+    </div>
+    <button class="mobile-toggle" onclick="toggleNav()">&#9776;</button>
+  </div>
+</header>
+
+{% block content %}{% endblock %}
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <ul class="footer-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/models">Supported Models</a></li>
+        <li><a href="/reset-wizard">Reset Wizard</a></li>
+        <li><a href="/firmware-table">Firmware Table</a></li>
+        <li><a href="/removal">Firmware Removal</a></li>
+        <li><a href="/test">Test Process</a></li>
+        <li><a href="/override">Override Commands</a></li>
+        <li><a href="/safety-guide">Safety Guide</a></li>
+      </ul>
+      <div class="footer-brand">
+        <div class="footer-tagline">&copy; 2026 Samsung Firmware Tool. For advanced users only. Use at your own risk.</div>
+        <div class="footer-copy">NOT affiliated with Samsung Electronics Co., Ltd.</div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
