@@ -30,6 +30,7 @@ print(f'  Detected: {d[\"detected\"]}, Mode: {d[\"connection_mode\"]}, Method: {
 
 # 3. Run firmware parser test
 echo "[$DATE] Running firmware parser test..." >> "$LOG_FILE"
+cd "$PROJECT_DIR"
 python3 -c "
 import sys
 sys.path.insert(0, '.')
